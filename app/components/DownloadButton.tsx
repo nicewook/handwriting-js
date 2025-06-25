@@ -25,10 +25,17 @@ export default function DownloadButton({
   const selectedSize = getFontSizeById(selectedSizeId);
 
   // PDF 다운로드 처리
-  const downloadPDF = (pdfBytes: Uint8Array, filename: string) => {
+  const downloadPDF = (base64Data: string, filename: string) => {
     try {
+      // Base64를 바이너리로 변환
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
       // Blob 생성
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const blob = new Blob([bytes], { type: 'application/pdf' });
       
       // 다운로드 링크 생성
       const url = URL.createObjectURL(blob);

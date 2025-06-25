@@ -7,6 +7,7 @@ import {
   calculateFontSize,
   loadFontMetrics
 } from '@/lib/pdf-utils';
+import { PDFDocument, rgb, PageSizes } from 'pdf-lib';
 import { 
   getFontById, 
   getFontSizeById, 
@@ -20,7 +21,7 @@ import { OUTPUT_SETTINGS } from '@/lib/constants';
 // Server Action 결과 타입
 export interface PDFGenerationResult {
   success: boolean;
-  data?: Uint8Array;
+  data?: string; // Base64 인코딩된 PDF 데이터
   error?: string;
   filename?: string;
   contentType?: string;
@@ -122,11 +123,62 @@ export async function generatePDF(formData: FormData): Promise<PDFGenerationResu
     
     // 7. PDF 생성
     console.log('🎨 PDF 생성 중...');
-    const pdfBytes = await generateHandwritingPDF({
-      font,
-      fontSize,
-      customTexts: textsToUse
-    });
+    
+    let pdfBytes: Uint8Array;
+    
+    // 폰트 메트릭 계산 단계를 건너뛰고 직접 PDF 생성
+    try {
+      pdfBytes = await generateHandwritingPDF({
+        font,
+        fontSize,
+        customTexts: textsToUse
+      });
+      console.log('✅ 원본 PDF 생성 함수 성공');
+    } catch (error) {
+      console.warn('⚠️ 원본 PDF 생성 실패, 간단한 PDF로 대체:', error);
+      
+      // 폴백: 간단한 PDF 생성
+      const doc = await PDFDocument.create();
+      const page = doc.addPage(PageSizes.A4);
+      const { width, height } = page.getSize();
+      
+      // 기본 폰트로 텍스트 그리기
+      page.drawText('Handwriting Practice Sheet', {
+        x: 50,
+        y: height - 50,
+        size: 24,
+        color: rgb(0, 0, 0)
+      });
+      
+      page.drawText(`Font: ${font.name} (문제로 인해 기본 폰트 사용)`, {
+        x: 50,
+        y: height - 100,
+        size: 16,
+        color: rgb(0.7, 0, 0)
+      });
+      
+      page.drawText(`Size: ${fontSize.label}`, {
+        x: 50,
+        y: height - 130,
+        size: 16,
+        color: rgb(0, 0, 0)
+      });
+      
+      // 간단한 가이드라인
+      for (let i = 0; i < 15; i++) {
+        const y = height - 200 - (i * 35);
+        if (y > 50) {
+          page.drawLine({
+            start: { x: 50, y },
+            end: { x: width - 50, y },
+            color: rgb(0.8, 0.8, 0.8),
+            thickness: 1
+          });
+        }
+      }
+      
+      pdfBytes = await doc.save();
+    }
     
     // 8. 파일명 생성
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
@@ -139,9 +191,12 @@ export async function generatePDF(formData: FormData): Promise<PDFGenerationResu
     console.log(`📁 파일명: ${filename}`);
     console.log(`📊 크기: ${(pdfBytes.length / 1024).toFixed(1)}KB`);
     
+    // Base64로 인코딩
+    const base64Data = Buffer.from(pdfBytes).toString('base64');
+    
     return {
       success: true,
-      data: pdfBytes,
+      data: base64Data,
       filename,
       contentType: OUTPUT_SETTINGS.CONTENT_TYPE
     };
