@@ -1,7 +1,20 @@
+'use client';
+
+import { useState } from 'react';
+import FontSelector from './components/FontSelector';
+import SizeSelector from './components/SizeSelector';
+import PreviewSection from './components/PreviewSection';
+import DownloadButton from './components/DownloadButton';
+import { DEFAULT_FONT_ID, DEFAULT_FONT_SIZE_ID } from '@/lib/fonts';
+
 export default function Home() {
+  // 상태 관리
+  const [selectedFontId, setSelectedFontId] = useState(DEFAULT_FONT_ID);
+  const [selectedSizeId, setSelectedSizeId] = useState(DEFAULT_FONT_SIZE_ID);
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <header className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -13,77 +26,52 @@ export default function Home() {
         </header>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Left Panel - Controls */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">설정</h2>
-            
+          <div className="xl:col-span-1 space-y-6">
             {/* Font Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                폰트 선택
-              </label>
-              <select className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="roboto">Roboto Mono Extra Light Italic</option>
-                {/* 추후 폰트 옵션들이 추가될 예정 */}
-              </select>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <FontSelector
+                selectedFontId={selectedFontId}
+                onFontChange={setSelectedFontId}
+              />
             </div>
 
             {/* Size Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                사이즈 선택
-              </label>
-              <div className="flex gap-4">
-                <label className="flex items-center">
-                  <input type="radio" name="size" value="small" className="mr-2" />
-                  <span>소</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="radio" name="size" value="medium" className="mr-2" defaultChecked />
-                  <span>중</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="radio" name="size" value="large" className="mr-2" />
-                  <span>대</span>
-                </label>
-              </div>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <SizeSelector
+                selectedSizeId={selectedSizeId}
+                onSizeChange={setSelectedSizeId}
+              />
             </div>
 
             {/* Download Button */}
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors">
-              PDF 다운로드
-            </button>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <DownloadButton
+                selectedFontId={selectedFontId}
+                selectedSizeId={selectedSizeId}
+              />
+            </div>
           </div>
 
           {/* Right Panel - Preview */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">미리보기</h2>
-            
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">소 (14px)</h3>
-                <p className="text-sm" style={{ fontFamily: 'monospace' }}>
-                  The quick brown fox jumps over the lazy dog.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">중 (18px)</h3>
-                <p className="text-lg" style={{ fontFamily: 'monospace' }}>
-                  The quick brown fox jumps over the lazy dog.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">대 (24px)</h3>
-                <p className="text-xl" style={{ fontFamily: 'monospace' }}>
-                  The quick brown fox jumps over the lazy dog.
-                </p>
-              </div>
+          <div className="xl:col-span-2">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <PreviewSection
+                selectedFontId={selectedFontId}
+                selectedSizeId={selectedSizeId}
+              />
             </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-16 text-center text-gray-500 text-sm">
+          <p>
+            만든 연습 시트로 아름다운 핸드라이팅을 연습해보세요! 
+            <span className="inline-block ml-2">✍️</span>
+          </p>
+        </footer>
       </div>
     </div>
   );

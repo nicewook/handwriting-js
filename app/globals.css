@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 커스텀 핸드라이팅 폰트들 */
+@font-face {
+  font-family: 'RobotoMono';
+  src: url('/fonts/RobotoMono-ExtraLightItalic.ttf') format('truetype');
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrainsMono';
+  src: url('/fonts/JetBrainsMono-ExtraLightItalic.ttf') format('truetype');
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SourceCodePro';
+  src: url('/fonts/SourceCodePro-ExtraLightItalic.ttf') format('truetype');
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -24,4 +49,38 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* 폰트 미리보기 스타일 */
+.font-preview {
+  line-height: 1.5;
+  letter-spacing: 0.025em;
+  transition: all 0.2s ease-in-out;
+}
+
+.font-preview.loading {
+  opacity: 0.7;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 폰트별 클래스 */
+.font-roboto-mono {
+  font-family: 'RobotoMono', 'Courier New', monospace;
+}
+
+.font-jetbrains-mono {
+  font-family: 'JetBrainsMono', 'Courier New', monospace;
+}
+
+.font-source-code-pro {
+  font-family: 'SourceCodePro', 'Courier New', monospace;
 }
