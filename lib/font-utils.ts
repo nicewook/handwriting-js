@@ -170,9 +170,9 @@ export function getSafeFontStyle(
       };
     }
 
-    const fontFamily = isFontLoaded(font.fontFamily) 
-      ? `'${font.fontFamily}', ${fallbackFamily}`
-      : fallbackFamily;
+    // 폰트 로딩 상태에 관계없이 폰트 패밀리를 적용
+    // 브라우저가 폰트를 찾을 수 없으면 자동으로 fallback 사용
+    const fontFamily = `'${font.fontFamily}', ${fallbackFamily}`;
 
     return {
       fontFamily,

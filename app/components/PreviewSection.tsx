@@ -2,7 +2,6 @@
 
 import { FONT_SIZES, PREVIEW_TEXT, getFontById, getFontSizeById } from '@/lib/fonts';
 import { useFontState } from '@/lib/hooks/useFontLoader';
-import { getSafeFontStyle } from '@/lib/font-utils';
 
 interface PreviewSectionProps {
   selectedFontId: string;
@@ -43,7 +42,7 @@ export default function PreviewSection({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900">
-              {selectedSize?.label || '보통 글씨'} ({selectedSize?.size || 18}px)
+              {selectedSize?.label} ({selectedSize?.size}px)
             </h3>
             {!isFontReady && fontState === 'loading' && (
               <div className="flex items-center text-sm text-blue-600">
@@ -57,66 +56,19 @@ export default function PreviewSection({
           </div>
           
           <div
-            className={`font-preview p-4 bg-gray-50 rounded border-2 border-dashed border-gray-200 ${!isFontReady && fontState === 'loading' ? 'loading' : ''}`}
-            style={getSafeFontStyle(selectedFontId, selectedSizeId)}
+            className={`font-preview p-4 bg-gray-50 rounded border-2 border-dashed border-gray-200 ${getFontClassName(selectedFontId)} ${!isFontReady && fontState === 'loading' ? 'loading' : ''}`}
+            style={{ 
+              fontSize: `${selectedSize?.size || 18}px`,
+              fontWeight: 200,
+              fontStyle: 'italic',
+              lineHeight: 1.5
+            }}
           >
             {PREVIEW_TEXT}
           </div>
         </div>
       </div>
 
-      {/* 모든 사이즈 비교 미리보기 */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          모든 사이즈 비교
-        </h3>
-        
-        <div className="space-y-6">
-          {FONT_SIZES.map((size) => {
-            const isCurrentSize = size.id === selectedSizeId;
-            
-            return (
-              <div 
-                key={size.id}
-                className={`
-                  p-4 rounded-lg border-2 transition-all duration-200
-                  ${isCurrentSize 
-                    ? 'border-blue-300 bg-blue-50' 
-                    : 'border-gray-200 bg-gray-50'
-                  }
-                `}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <h4 className="text-sm font-medium text-gray-700">
-                      {size.label}
-                    </h4>
-                    <span className="text-xs text-gray-500">
-                      ({size.size}px)
-                    </span>
-                    {isCurrentSize && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        선택됨
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="text-xs text-gray-500">
-                    {size.description}
-                  </div>
-                </div>
-                
-                <div
-                  className={`font-preview ${!isFontReady && fontState === 'loading' ? 'loading' : ''}`}
-                  style={getSafeFontStyle(selectedFontId, size.id)}
-                >
-                  {PREVIEW_TEXT}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* 폰트 정보 */}
       {selectedFont && (
@@ -149,4 +101,15 @@ export default function PreviewSection({
       )}
     </div>
   );
+}
+
+// 폰트 ID에 따른 CSS 클래스 반환
+function getFontClassName(fontId: string): string {
+  const classMap: Record<string, string> = {
+    'roboto-mono': 'font-roboto-mono',
+    'jetbrains-mono': 'font-jetbrains-mono',
+    'source-code-pro': 'font-source-code-pro'
+  };
+  
+  return classMap[fontId] || 'font-roboto-mono';
 }
