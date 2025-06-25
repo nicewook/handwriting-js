@@ -69,15 +69,24 @@ export default function FontSelector({
                   </p>
                 </div>
                 
-                {/* 선택 라디오 버튼 */}
+                {/* 선택 라디오 버튼 (숨김) */}
                 <input
                   type="radio"
                   name="font-selection"
                   checked={isSelected}
                   onChange={() => onFontChange(font.id)}
-                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="sr-only"
                 />
               </div>
+
+              {/* 선택 표시 */}
+              {isSelected && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
 
               {/* 폰트 미리보기 (폰트가 로딩된 경우에만) */}
               {isReady && (
