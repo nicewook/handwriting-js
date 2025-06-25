@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { AVAILABLE_FONTS, FontMetadata, DEFAULT_FONT_ID } from '@/lib/fonts';
+import { AVAILABLE_FONTS } from '@/lib/fonts';
 import { useFontLoader } from '@/lib/hooks/useFontLoader';
 
 interface FontSelectorProps {

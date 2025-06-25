@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { getFontById, getFontSizeById } from '@/lib/fonts';
+import { generatePDF } from '@/app/actions/pdf-generator';
 
 interface DownloadButtonProps {
   selectedFontId: string;
@@ -18,36 +19,79 @@ export default function DownloadButton({
 }: DownloadButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<string>('');
 
   const selectedFont = getFontById(selectedFontId);
   const selectedSize = getFontSizeById(selectedSizeId);
 
+  // PDF 다운로드 처리
+  const downloadPDF = (pdfBytes: Uint8Array, filename: string) => {
+    try {
+      // Blob 생성
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      
+      // 다운로드 링크 생성
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      
+      // 링크 클릭으로 다운로드 시작
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // 메모리 정리
+      URL.revokeObjectURL(url);
+      
+      console.log(`✅ PDF 다운로드 완료: ${filename}`);
+    } catch (error) {
+      console.error('다운로드 처리 오류:', error);
+      throw new Error('파일 다운로드 중 오류가 발생했습니다.');
+    }
+  };
+
   const handleDownload = async () => {
-    if (isGenerating || disabled) return;
+    if (isGenerating || disabled || !selectedFont || !selectedSize) return;
 
     setIsGenerating(true);
     setError(null);
+    setProgress('PDF 생성 준비 중...');
 
     try {
-      // TODO: Server Action 호출 구현 예정
-      // const formData = new FormData();
-      // formData.append('fontId', selectedFontId);
-      // formData.append('sizeId', selectedSizeId);
+      // FormData 준비
+      const formData = new FormData();
+      formData.append('fontId', selectedFontId);
+      formData.append('sizeId', selectedSizeId);
       
-      // const result = await generatePDF(formData);
+      setProgress('폰트 분석 중...');
       
-      // 임시로 지연 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Server Action 호출
+      const result = await generatePDF(formData);
       
-      // 실제 구현에서는 Server Action에서 PDF를 생성하고 다운로드
-      console.log('PDF 생성 요청:', { selectedFontId, selectedSizeId });
+      if (!result.success) {
+        throw new Error(result.error || 'PDF 생성에 실패했습니다.');
+      }
       
-      // 임시 알림
-      alert('PDF 생성 기능은 곧 구현될 예정입니다!');
+      if (!result.data || !result.filename) {
+        throw new Error('PDF 데이터를 받지 못했습니다.');
+      }
+      
+      setProgress('PDF 다운로드 중...');
+      
+      // PDF 다운로드
+      downloadPDF(result.data, result.filename);
+      
+      setProgress('완료!');
+      
+      // 성공 메시지 (선택적)
+      setTimeout(() => setProgress(''), 2000);
       
     } catch (err) {
       console.error('PDF 생성 오류:', err);
-      setError(err instanceof Error ? err.message : 'PDF 생성 중 오류가 발생했습니다.');
+      const errorMessage = err instanceof Error ? err.message : 'PDF 생성 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      setProgress('');
     } finally {
       setIsGenerating(false);
     }
@@ -74,7 +118,7 @@ export default function DownloadButton({
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            PDF 생성 중...
+            {progress || 'PDF 생성 중...'}
           </>
         ) : (
           <>
@@ -95,6 +139,31 @@ export default function DownloadButton({
         </div>
       </div>
 
+      {/* 진행 상황 표시 */}
+      {isGenerating && progress && (
+        <div className="text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="flex items-center">
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="font-medium">{progress}</span>
+          </div>
+        </div>
+      )}
+
+      {/* 성공 메시지 */}
+      {progress === '완료!' && (
+        <div className="text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="flex items-center">
+            <svg className="w-4 h-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium">PDF가 성공적으로 다운로드되었습니다!</span>
+          </div>
+        </div>
+      )}
+
       {/* 주의사항 */}
       <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="font-medium text-blue-900 mb-1">📋 안내사항</div>
@@ -103,6 +172,7 @@ export default function DownloadButton({
           <li>• 4-Zone 가이드라인이 포함됩니다</li>
           <li>• 연습 텍스트가 자동으로 배치됩니다</li>
           <li>• PDF 파일로 다운로드됩니다</li>
+          <li>• 생성된 PDF는 고품질 인쇄에 최적화되어 있습니다</li>
         </ul>
       </div>
 

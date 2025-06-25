@@ -40,65 +40,81 @@
 - [x] UI 컴포넌트 구현 - FontSelector, SizeSelector, PreviewSection, DownloadButton
 - [x] 메인 페이지 통합 - 상태 관리 및 컴포넌트 연동
 
-### 4단계: Server Actions 구현
-- [ ] `app/actions/pdf-generator.ts` 생성
-- [ ] 기존 PDF 생성 로직 포팅
-- [ ] 폰트 선택 및 사이즈 매개변수 처리
-- [ ] PDF 바이너리 반환 로직
+### ✅ 4단계: Server Actions 구현
+- [x] `app/actions/pdf-generator.ts` 생성 - PDF 생성 Server Action 구현
+- [x] 기존 PDF 생성 로직 포팅 (`lib/pdf-utils.ts`) - 4-Zone 시스템 완전 재구현
+- [x] 폰트 선택 및 사이즈 매개변수 처리 - FormData 기반 매개변수 검증
+- [x] PDF 바이너리 반환 로직 - Uint8Array 반환 및 다운로드 처리
+- [x] 폰트 메트릭 동적 계산 - OpenType.js 기반 폰트 분석
+- [x] 자동 줄바꿈 시스템 - 지능형 텍스트 래핑
+- [x] 클라이언트 다운로드 처리 - Blob API 기반 파일 다운로드
+- [x] 핵심 로직 문서화 - PDF_GENERATION_GUIDE.md 생성
 
-### 5단계: UI 컴포넌트 개발
-- [ ] `FontSelector` - 폰트 선택 드롭다운
-- [ ] `SizeSelector` - 사이즈 선택 (소/중/대)
-- [ ] `PreviewSection` - 실시간 폰트 미리보기
-- [ ] `DownloadButton` - PDF 생성 및 다운로드
-- [ ] 메인 페이지 레이아웃 구성
+### ✅ 5단계: UI 컴포넌트 개발 (3단계에서 완료됨)
+- [x] `FontSelector` - 폰트 선택 드롭다운 (로딩 상태, 미리보기 포함)
+- [x] `SizeSelector` - 사이즈 선택 (소/중/대)
+- [x] `PreviewSection` - 실시간 폰트 미리보기
+- [x] `DownloadButton` - PDF 생성 및 다운로드 (Server Action 연동)
+- [x] 메인 페이지 레이아웃 구성
 
-### 6단계: 미리보기 기능
-- [ ] 웹 폰트 CSS 로딩
-- [ ] "The quick brown fox..." 샘플 텍스트 표시
-- [ ] 3가지 사이즈로 미리보기 (14px, 18px, 24px)
-- [ ] 폰트 변경시 실시간 업데이트
+### ✅ 6단계: 미리보기 기능 (3단계에서 완료됨)
+- [x] 웹 폰트 CSS 로딩 - @font-face 및 FontFace API
+- [x] "The quick brown fox..." 샘플 텍스트 표시
+- [x] 3가지 사이즈로 미리보기 (소/중/대 전체 비교)
+- [x] 폰트 변경시 실시간 업데이트
 
-### 7단계: PDF 다운로드 구현
-- [ ] Server Action과 폼 연결
-- [ ] 클라이언트 사이드 다운로드 처리
-- [ ] 로딩 상태 표시
-- [ ] 에러 처리 및 사용자 피드백
+### ✅ 7단계: PDF 다운로드 구현 (4단계에서 완료됨)
+- [x] Server Action과 폼 연결 - generatePDF 함수 호출
+- [x] 클라이언트 사이드 다운로드 처리 - Blob API 활용
+- [x] 로딩 상태 표시 - 진행 상황 세부 표시
+- [x] 에러 처리 및 사용자 피드백 - 상세한 오류 메시지
 
 ### 8단계: 최적화 및 마무리
-- [ ] 성능 최적화 (폰트 로딩, PDF 생성)
-- [ ] 반응형 디자인 적용
-- [ ] 접근성 개선
-- [ ] 코드 정리 및 주석 추가
+- [x] 성능 최적화 (폰트 로딩, PDF 생성) - 폰트 미리 로딩, 메모리 관리
+- [x] 반응형 디자인 적용 - 모바일/데스크톱 최적화
+- [x] 접근성 개선 - 키보드 네비게이션, 스크린 리더 지원
+- [x] 코드 정리 및 주석 추가 - TypeScript 타입 안정성
 
 ### 9단계: 배포 준비
 - [ ] Vercel 배포 설정
 - [ ] 환경 변수 구성 (필요시)
 - [ ] 프로덕션 빌드 테스트
 - [ ] 배포 및 테스트
+- [ ] 최종 기능 검증
 
-## 파일 구조 (최종)
+## 파일 구조 (현재)
 ```
-handwriting-next/
+handwriting-js/
 ├── app/
-│   ├── page.tsx             # 메인 페이지
-│   ├── layout.tsx           # 루트 레이아웃
-│   ├── globals.css          # Tailwind CSS
+│   ├── page.tsx             # 메인 페이지 (상태 관리 및 컴포넌트 통합)
+│   ├── layout.tsx           # 루트 레이아웃 
+│   ├── globals.css          # Tailwind CSS + 웹폰트 정의
 │   ├── actions/
-│   │   └── pdf-generator.ts # Server Actions
+│   │   └── pdf-generator.ts # PDF 생성 Server Actions
 │   └── components/
-│       ├── FontSelector.tsx # 폰트 선택
-│       ├── SizeSelector.tsx # 사이즈 선택
-│       ├── PreviewSection.tsx # 미리보기
-│       └── DownloadButton.tsx # 다운로드
+│       ├── FontSelector.tsx # 폰트 선택 + 로딩 상태
+│       ├── SizeSelector.tsx # 사이즈 선택 (소/중/대)
+│       ├── PreviewSection.tsx # 실시간 미리보기
+│       └── DownloadButton.tsx # PDF 다운로드 + 진행 상황
 ├── public/
-│   └── fonts/              # 폰트 파일들
+│   └── fonts/              # 폰트 파일들 (3개)
+│       ├── RobotoMono-ExtraLightItalic.ttf
+│       ├── JetBrainsMono-ExtraLightItalic.ttf
+│       └── SourceCodePro-ExtraLightItalic.ttf
 ├── lib/
-│   ├── fonts.ts           # 폰트 메타데이터
-│   ├── pdf-utils.ts       # PDF 생성 유틸리티
-│   └── constants.ts       # 상수 정의
+│   ├── fonts.ts           # 폰트 메타데이터 및 유틸리티
+│   ├── font-utils.ts      # 폰트 로딩 및 검증 유틸리티
+│   ├── pdf-utils.ts       # PDF 생성 핵심 로직
+│   ├── constants.ts       # 4-Zone 시스템 상수
+│   └── hooks/
+│       └── useFontLoader.ts # 폰트 로딩 React Hook
 ├── backup/                # 기존 코드 백업
-└── package.json
+│   ├── main.js           # 원본 PDF 생성 로직
+│   ├── RobotoMono-ExtraLightItalic.ttf
+│   └── ...
+├── PDF_GENERATION_GUIDE.md # 핵심 로직 문서화
+├── tasks.md              # 개발 진행 상황 관리
+└── package.json          # dependencies 포함
 ```
 
 ## 현재 진행 상황
@@ -111,12 +127,32 @@ handwriting-next/
 - ✅ 기본 UI 레이아웃 구현 완료
 - ✅ 폰트 관리 시스템 구현 완료 (3단계)
 - ✅ 웹폰트 로딩 시스템 및 UI 컴포넌트 완성
-- 🔄 다음: Server Actions 구현 (4단계)
+- ✅ **핵심 Server Actions 구현 완료 (4단계)**
+- ✅ **4-Zone 가이드라인 시스템 완전 재구현**
+- ✅ **실시간 PDF 생성 및 다운로드 기능 완성**
+- ✅ **핵심 로직 문서화 (PDF_GENERATION_GUIDE.md)**
+- 🔄 다음: 배포 준비 (9단계)
 
 ## 참고사항
-- 기존 PDF 생성 로직은 `backup/main.js`에서 참조 가능
-- 폰트 파일은 `backup/RobotoMono-ExtraLightItalic.ttf` 위치
-- 4-Zone 가이드라인 시스템 로직 재사용 필요
-- Vercel 무료 배포 목표
-- TypeScript 사용으로 파일 확장자 .ts/.tsx 사용
-- **안정적인 버전 사용**: Next.js 14.2.30 + React 18 + Tailwind CSS 3.4
+
+### 핵심 기능
+- **4-Zone 가이드라인 시스템**: 정밀한 폰트 메트릭 기반 가이드라인 생성
+- **동적 폰트 크기 계산**: OpenType.js를 활용한 폰트별 최적 크기 자동 산출
+- **실시간 미리보기**: 웹폰트 로딩과 연동된 WYSIWYG 미리보기
+- **Server Actions**: Next.js 14의 최신 서버 사이드 처리 기능 활용
+
+### 기술적 특징
+- **안정적인 버전**: Next.js 14.2.30 + React 18 + Tailwind CSS 3.4
+- **TypeScript 완전 지원**: 타입 안정성과 개발 경험 최적화
+- **메모리 효율적**: 대용량 PDF 생성 시 메모리 관리 최적화
+- **오류 처리**: 상세한 오류 메시지와 복구 로직
+
+### 문서화
+- **핵심 로직**: `PDF_GENERATION_GUIDE.md` 상세 설명
+- **진행 상황**: `tasks.md` 실시간 업데이트
+- **원본 로직**: `backup/main.js` 참조 가능
+
+### 배포 정보
+- **목표 플랫폼**: Vercel 무료 배포
+- **서버리스**: Next.js Server Actions → Vercel Functions 자동 변환
+- **정적 자산**: 폰트 파일 CDN 배포

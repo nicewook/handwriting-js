@@ -1,21 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FontMetadata, AVAILABLE_FONTS } from '../fonts';
-import { FontLoadingState, FontLoadResult, preloadAllFonts, isFontLoaded } from '../font-utils';
+import { AVAILABLE_FONTS } from '../fonts';
+import { FontLoadingState, preloadAllFonts, isFontLoaded } from '../font-utils';
 
 // 폰트 로딩 상태 관리 Hook
 export function useFontLoader() {
   const [loadingStates, setLoadingStates] = useState<Record<string, FontLoadingState>>({});
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // 개별 폰트 로딩 상태 업데이트
-  const updateFontState = useCallback((fontId: string, state: FontLoadingState) => {
-    setLoadingStates(prev => ({
-      ...prev,
-      [fontId]: state
-    }));
-  }, []);
 
   // 모든 폰트 미리 로딩
   const initializeFonts = useCallback(async () => {

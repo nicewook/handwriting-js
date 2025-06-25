@@ -1,6 +1,6 @@
 'use client';
 
-import { FONT_SIZES, FontSize, DEFAULT_FONT_SIZE_ID } from '@/lib/fonts';
+import { FONT_SIZES } from '@/lib/fonts';
 
 interface SizeSelectorProps {
   selectedSizeId: string;
