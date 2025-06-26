@@ -5,12 +5,14 @@ import FontSelector from './components/FontSelector';
 import SizeSelector from './components/SizeSelector';
 import PreviewSection from './components/PreviewSection';
 import DownloadButton from './components/DownloadButton';
-import { DEFAULT_FONT_ID, DEFAULT_FONT_SIZE_ID } from '@/lib/fonts';
+import { DEFAULT_FONT_ID } from '@/lib/fonts';
+
+const DEFAULT_FONT_SIZE = 18;
 
 export default function Home() {
   // 상태 관리
   const [selectedFontId, setSelectedFontId] = useState(DEFAULT_FONT_ID);
-  const [selectedSizeId, setSelectedSizeId] = useState(DEFAULT_FONT_SIZE_ID);
+  const [selectedSize, setSelectedSize] = useState(DEFAULT_FONT_SIZE);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -40,8 +42,8 @@ export default function Home() {
             {/* Size Selection */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <SizeSelector
-                selectedSizeId={selectedSizeId}
-                onSizeChange={setSelectedSizeId}
+                selectedSize={selectedSize}
+                onSizeChange={setSelectedSize}
               />
             </div>
 
@@ -49,7 +51,7 @@ export default function Home() {
             <div className="bg-white rounded-lg shadow-md p-6">
               <DownloadButton
                 selectedFontId={selectedFontId}
-                selectedSizeId={selectedSizeId}
+                selectedSize={selectedSize}
               />
             </div>
           </div>
@@ -59,7 +61,7 @@ export default function Home() {
             <div className="bg-white rounded-lg shadow-md p-6">
               <PreviewSection
                 selectedFontId={selectedFontId}
-                selectedSizeId={selectedSizeId}
+                selectedSizeId={selectedSize.toString()} // PreviewSection still needs a string
               />
             </div>
           </div>

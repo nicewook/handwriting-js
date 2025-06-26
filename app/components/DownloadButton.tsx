@@ -1,19 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { getFontById, getFontSizeById } from '@/lib/fonts';
+import { getFontById, FONT_SIZES } from '@/lib/fonts';
 import { generatePDF } from '@/app/actions/pdf-generator';
 
 interface DownloadButtonProps {
   selectedFontId: string;
-  selectedSizeId: string;
+  selectedSize: number;
   className?: string;
   disabled?: boolean;
 }
 
+// 숫자 크기를 가장 가까운 sizeId로 변환하는 헬퍼 함수
+const getSizeIdFromSize = (size: number): string => {
+  if (size <= 16) return 'small';
+  if (size <= 21) return 'medium';
+  return 'large';
+};
+
 export default function DownloadButton({ 
   selectedFontId, 
-  selectedSizeId, 
+  selectedSize, 
   className = '',
   disabled = false 
 }: DownloadButtonProps) {
@@ -22,35 +29,24 @@ export default function DownloadButton({
   const [progress, setProgress] = useState<string>('');
 
   const selectedFont = getFontById(selectedFontId);
-  const selectedSize = getFontSizeById(selectedSizeId);
 
   // PDF 다운로드 처리
   const downloadPDF = (base64Data: string, filename: string) => {
     try {
-      // Base64를 바이너리로 변환
       const binaryString = atob(base64Data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      
-      // Blob 생성
       const blob = new Blob([bytes], { type: 'application/pdf' });
-      
-      // 다운로드 링크 생성
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
-      
-      // 링크 클릭으로 다운로드 시작
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      // 메모리 정리
       URL.revokeObjectURL(url);
-      
       console.log(`✅ PDF 다운로드 완료: ${filename}`);
     } catch (error) {
       console.error('다운로드 처리 오류:', error);
@@ -59,21 +55,21 @@ export default function DownloadButton({
   };
 
   const handleDownload = async () => {
-    if (isGenerating || disabled || !selectedFont || !selectedSize) return;
+    if (isGenerating || disabled || !selectedFont) return;
 
     setIsGenerating(true);
     setError(null);
     setProgress('PDF 생성 준비 중...');
 
     try {
-      // FormData 준비
+      const sizeId = getSizeIdFromSize(selectedSize);
+
       const formData = new FormData();
       formData.append('fontId', selectedFontId);
-      formData.append('sizeId', selectedSizeId);
+      formData.append('sizeId', sizeId);
       
       setProgress('폰트 분석 중...');
       
-      // Server Action 호출
       const result = await generatePDF(formData);
       
       if (!result.success) {
@@ -86,12 +82,10 @@ export default function DownloadButton({
       
       setProgress('PDF 다운로드 중...');
       
-      // PDF 다운로드
       downloadPDF(result.data, result.filename);
       
       setProgress('완료!');
       
-      // 성공 메시지 (선택적)
       setTimeout(() => setProgress(''), 2000);
       
     } catch (err) {
@@ -106,14 +100,13 @@ export default function DownloadButton({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* 다운로드 버튼 */}
       <button
         onClick={handleDownload}
-        disabled={disabled || isGenerating || !selectedFont || !selectedSize}
+        disabled={disabled || isGenerating || !selectedFont}
         className={`
           w-full flex items-center justify-center py-3 px-4 border border-transparent 
           rounded-md shadow-sm text-sm font-medium text-white transition-all duration-200
-          ${disabled || isGenerating || !selectedFont || !selectedSize
+          ${disabled || isGenerating || !selectedFont
             ? 'bg-gray-400 cursor-not-allowed' 
             : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
           }
@@ -137,16 +130,14 @@ export default function DownloadButton({
         )}
       </button>
 
-      {/* 선택된 설정 요약 */}
       <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
         <div className="font-medium text-gray-900 mb-1">생성 설정</div>
         <div className="space-y-1">
           <div>폰트: {selectedFont?.name || '선택 안됨'}</div>
-          <div>사이즈: {selectedSize?.label || '선택 안됨'} ({selectedSize?.size || 0}px)</div>
+          <div>사이즈: {selectedSize}px</div>
         </div>
       </div>
 
-      {/* 진행 상황 표시 */}
       {isGenerating && progress && (
         <div className="text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
           <div className="flex items-center">
@@ -159,7 +150,6 @@ export default function DownloadButton({
         </div>
       )}
 
-      {/* 성공 메시지 */}
       {progress === '완료!' && (
         <div className="text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg p-3">
           <div className="flex items-center">
@@ -171,7 +161,6 @@ export default function DownloadButton({
         </div>
       )}
 
-      {/* 주의사항 */}
       <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="font-medium text-blue-900 mb-1">📋 안내사항</div>
         <ul className="space-y-1 text-blue-800">
@@ -183,7 +172,6 @@ export default function DownloadButton({
         </ul>
       </div>
 
-      {/* 오류 메시지 */}
       {error && (
         <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
           <div className="flex items-center">
@@ -196,14 +184,13 @@ export default function DownloadButton({
         </div>
       )}
 
-      {/* 비활성화 상태 메시지 */}
-      {(!selectedFont || !selectedSize) && (
+      {(!selectedFont) && (
         <div className="text-sm text-yellow-600 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
           <div className="flex items-center">
             <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
-            <span>폰트와 사이즈를 선택해주세요</span>
+            <span>폰트를 선택해주세요</span>
           </div>
         </div>
       )}
