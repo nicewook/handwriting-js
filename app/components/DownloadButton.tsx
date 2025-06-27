@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { getFontById, FONT_SIZES } from '@/lib/fonts';
 import { generatePDF } from '@/app/actions/pdf-generator';
+import { TEXT_OPTIONS, TextOptionId } from '@/lib/constants';
 
 interface DownloadButtonProps {
   selectedFontId: string;
   selectedSize: number;
+  selectedTextId: TextOptionId;
   className?: string;
   disabled?: boolean;
 }
@@ -21,6 +23,7 @@ const getSizeIdFromSize = (size: number): string => {
 export default function DownloadButton({ 
   selectedFontId, 
   selectedSize, 
+  selectedTextId,
   className = '',
   disabled = false 
 }: DownloadButtonProps) {
@@ -29,6 +32,7 @@ export default function DownloadButton({
   const [progress, setProgress] = useState<string>('');
 
   const selectedFont = getFontById(selectedFontId);
+  const selectedTextOption = TEXT_OPTIONS.find(option => option.id === selectedTextId);
 
   // PDF 다운로드 처리
   const downloadPDF = (base64Data: string, filename: string) => {
@@ -67,6 +71,7 @@ export default function DownloadButton({
       const formData = new FormData();
       formData.append('fontId', selectedFontId);
       formData.append('sizeId', sizeId);
+      formData.append('textId', selectedTextId);
       
       setProgress('폰트 분석 중...');
       
@@ -135,6 +140,7 @@ export default function DownloadButton({
         <div className="space-y-1">
           <div>폰트: {selectedFont?.name || '선택 안됨'}</div>
           <div>사이즈: {selectedSize}px</div>
+          <div>텍스트: {selectedTextOption?.name || '선택 안됨'}</div>
         </div>
       </div>
 

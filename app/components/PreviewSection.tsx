@@ -2,10 +2,12 @@
 
 import { PREVIEW_TEXT, getFontById } from '@/lib/fonts';
 import { useFontState } from '@/lib/hooks/useFontLoader';
+import { TEXT_OPTIONS, TextOptionId } from '@/lib/constants';
 
 interface PreviewSectionProps {
   selectedFontId: string;
   selectedSizeId: string; // This prop is now unused but kept for compatibility
+  selectedTextId: TextOptionId;
   className?: string;
 }
 
@@ -18,10 +20,15 @@ const previewSizes = [
 export default function PreviewSection({ 
   selectedFontId, 
   selectedSizeId, // This prop is now unused but kept for compatibility
+  selectedTextId,
   className = '' 
 }: PreviewSectionProps) {
   const { isReady: isFontReady, state: fontState } = useFontState(selectedFontId);
   const selectedFont = getFontById(selectedFontId);
+  const selectedTextOption = TEXT_OPTIONS.find(option => option.id === selectedTextId);
+  
+  // 선택된 텍스트의 첫 번째 내용을 미리보기로 사용
+  const previewText = selectedTextOption?.texts[0] || PREVIEW_TEXT;
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -58,7 +65,7 @@ export default function PreviewSection({
                 lineHeight: 1.5
               }}
             >
-              {PREVIEW_TEXT}
+              {previewText.substring(0, 200)}{previewText.length > 200 && '...'}
             </div>
           </div>
         ))}
@@ -70,8 +77,8 @@ export default function PreviewSection({
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="text-sm font-medium text-blue-900 mb-2">폰트 정보</h3>
           <div className="text-sm text-blue-800 space-y-1">
-            <div>이름: {selectedFont.name}</div>
-            <div>설명: {selectedFont.description}</div>
+            <div>폰트: {selectedFont.name}</div>
+            <div>텍스트: {selectedTextOption?.name}</div>
             <div>패밀리: {selectedFont.fontFamily}</div>
             <div>스타일: {selectedFont.style} / 굵기: {selectedFont.weight}</div>
           </div>

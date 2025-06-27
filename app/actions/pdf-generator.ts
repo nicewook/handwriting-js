@@ -16,7 +16,7 @@ import {
   FontMetadata,
   FontSize
 } from '@/lib/fonts';
-import { OUTPUT_SETTINGS } from '@/lib/constants';
+import { OUTPUT_SETTINGS, TEXT_OPTIONS, TextOptionId } from '@/lib/constants';
 
 // Server Action 결과 타입
 export interface PDFGenerationResult {
@@ -69,9 +69,10 @@ export async function generatePDF(formData: FormData): Promise<PDFGenerationResu
     // 1. FormData에서 매개변수 추출
     const fontId = formData.get('fontId') as string;
     const sizeId = formData.get('sizeId') as string;
+    const textId = formData.get('textId') as string;
     const customTexts = formData.get('customTexts') as string;
     
-    console.log(`📝 요청 매개변수: fontId=${fontId}, sizeId=${sizeId}`);
+    console.log(`📝 요청 매개변수: fontId=${fontId}, sizeId=${sizeId}, textId=${textId}`);
     
     // 2. 매개변수 검증
     const validation = validatePDFParams(fontId, sizeId);
@@ -110,14 +111,25 @@ export async function generatePDF(formData: FormData): Promise<PDFGenerationResu
     // 5. PDF 생성 정보 로깅
     logPDFGenerationInfo(font, fontSize, calculatedMetrics);
     
-    // 6. 커스텀 텍스트 처리
+    // 6. 텍스트 옵션 처리
     let textsToUse: string[] | undefined;
+    
+    // 선택된 텍스트 ID로 텍스트 찾기
+    if (textId) {
+      const selectedTextOption = TEXT_OPTIONS.find(option => option.id === textId);
+      if (selectedTextOption) {
+        textsToUse = selectedTextOption.texts;
+        console.log(`📝 선택된 텍스트 옵션 사용: ${selectedTextOption.name} (${textsToUse.length}개 블록)`);
+      }
+    }
+    
+    // 커스텀 텍스트가 있으면 우선 사용
     if (customTexts) {
       try {
         textsToUse = JSON.parse(customTexts);
         console.log('📝 커스텀 텍스트 사용:', textsToUse?.length, '개 블록');
       } catch (error) {
-        console.warn('⚠️  커스텀 텍스트 파싱 실패, 기본 텍스트 사용:', error);
+        console.warn('⚠️  커스텀 텍스트 파싱 실패, 선택된 텍스트 옵션 사용:', error);
       }
     }
     

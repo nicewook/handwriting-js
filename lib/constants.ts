@@ -48,21 +48,83 @@ export const GUIDELINE_STYLES = {
   }
 } as const;
 
-// 연습 문장들
-export const PRACTICE_TEXTS = [
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-  "abcdefghijklmnopqrstuvwxyz",
-  [
-    "The quick brown fox jumps over the lazy dog.",
-    "Go placidly amid the noise and haste, and remember what peace there may be in silence.",
-    "As far as possible, without surrender, be on good terms with all persons.",
-    "Speak your truth quietly and clearly; and listen to others, even to the dull and the ignorant; they too have their story.",
-    "Pack my box with five dozen liquor jugs.",
-    "Sphinx of black quartz, judge my vow.",
-    "You are a child of the universe, no less than the trees and the stars; you have a right to be here.",
-    "And whether or not it is clear to you, no doubt the universe is unfolding as it should."
-  ].join(" ")
+// 텍스트 선택 옵션들
+export const TEXT_OPTIONS = [
+  {
+    id: 'classic',
+    name: '클래식 연습 문장',
+    description: '기본 연습 문장',
+    texts: [
+      [
+        "The quick brown fox jumps over the lazy dog.",
+        "Go placidly amid the noise and haste, and remember what peace there may be in silence.",
+        "As far as possible, without surrender, be on good terms with all persons.",
+        "Speak your truth quietly and clearly; and listen to others, even to the dull and the ignorant; they too have their story.",
+        "Pack my box with five dozen liquor jugs.",
+        "Sphinx of black quartz, judge my vow.",
+        "You are a child of the universe, no less than the trees and the stars; you have a right to be here.",
+        "And whether or not it is clear to you, no doubt the universe is unfolding as it should."
+      ].join(" ")
+    ]
+  },
+  {
+    id: 'moby-dick',
+    name: '모비딕 (Moby Dick)',
+    description: '허먼 멜빌의 대표작',
+    texts: [
+      [
+        "Call me Ishmael. Some years ago—never mind how long precisely—having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.",
+        "It is a way I have of driving off the spleen and regulating the circulation.",
+        "Whenever I find myself growing grim about the mouth; whenever it is a damp, drizzly November in my soul; whenever I find myself involuntarily pausing before coffin warehouses, and bringing up the rear of every funeral I meet;",
+        "and especially whenever my hypos get such an upper hand of me, that it requires a strong moral principle to prevent me from deliberately stepping into the street, and methodically knocking people's hats off—then, I account it high time to get to sea as soon as I can.",
+        "This is my substitute for pistol and ball.",
+        "With a philosophical flourish Cato throws himself upon his sword; I quietly take to the ship.",
+        "There is nothing surprising in this.",
+        "If they but knew it, almost all men in their degree, some time or other, cherish very nearly the same feelings towards the ocean with me."
+      ].join(" ")
+    ]
+  },
+  {
+    id: 'anna-karenina',
+    name: '안나 카레니나 (Anna Karenina)',
+    description: '레프 톨스토이의 걸작',
+    texts: [
+      [
+        "Happy families are all alike; every unhappy family is unhappy in its own way.",
+        "Everything was in confusion in the Oblonskys' house.",
+        "The wife had discovered that the husband was carrying on an intrigue with a French girl, who had been a governess in their family, and she had announced to her husband that she could not go on living in the same house with him.",
+        "This position of affairs had now lasted three days, and not only the husband and wife themselves, but all the members of their family and household, were painfully conscious of it.",
+        "Every person in the house felt that there was no sense in their living together, and that the stray people brought together by chance in any inn had more in common with one another than they, the members of the family and household of the Oblonskys.",
+        "The wife did not leave her own room, the husband had not been at home for three days.",
+        "The children ran wild all over the house; the English governess quarreled with the housekeeper, and wrote to a friend asking her to look out for a new situation for her;",
+        "the man-cook had walked off the day before just at dinner time; the kitchen-maid, and the coachman had given warning."
+      ].join(" ")
+    ]
+  },
+  {
+    id: 'tale-of-two-cities',
+    name: '두 도시 이야기 (A Tale of Two Cities)',
+    description: '찰스 디킨스의 명작',
+    texts: [
+      [
+        "It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness,",
+        "it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness,",
+        "it was the spring of hope, it was the winter of despair, we had everything before us, we had nothing before us,",
+        "we were all going direct to Heaven, we were all going direct the other way--",
+        "in short, the period was so far like the present period, that some of its noisiest authorities insisted on its being received,",
+        "for good or for evil, in the superlative degree of comparison only."
+      ].join(" ")
+    ]
+  }
 ] as const;
+
+export type TextOptionId = typeof TEXT_OPTIONS[number]['id'];
+
+// 기본 선택 옵션
+export const DEFAULT_TEXT_OPTION_ID: TextOptionId = 'classic';
+
+// 하위 호환성을 위한 기존 상수 (deprecated)
+export const PRACTICE_TEXTS = TEXT_OPTIONS[0].texts;
 
 // 폰트 사이즈에 따른 PDF 사이즈 매핑
 export const FONT_SIZE_MAPPINGS = {

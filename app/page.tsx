@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import FontSelector from './components/FontSelector';
 import SizeSelector from './components/SizeSelector';
+import TextSelector from './components/TextSelector';
 import PreviewSection from './components/PreviewSection';
 import DownloadButton from './components/DownloadButton';
 import { DEFAULT_FONT_ID } from '@/lib/fonts';
+import { DEFAULT_TEXT_OPTION_ID, TextOptionId } from '@/lib/constants';
 
 const DEFAULT_FONT_SIZE = 18;
 
@@ -13,6 +15,7 @@ export default function Home() {
   // 상태 관리
   const [selectedFontId, setSelectedFontId] = useState(DEFAULT_FONT_ID);
   const [selectedSize, setSelectedSize] = useState(DEFAULT_FONT_SIZE);
+  const [selectedTextId, setSelectedTextId] = useState<TextOptionId>(DEFAULT_TEXT_OPTION_ID);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -47,11 +50,20 @@ export default function Home() {
               />
             </div>
 
+            {/* Text Selection */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <TextSelector
+                selectedTextId={selectedTextId}
+                onTextChange={setSelectedTextId}
+              />
+            </div>
+
             {/* Download Button */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <DownloadButton
                 selectedFontId={selectedFontId}
                 selectedSize={selectedSize}
+                selectedTextId={selectedTextId}
               />
             </div>
           </div>
@@ -61,7 +73,8 @@ export default function Home() {
             <div className="bg-white rounded-lg shadow-md p-6">
               <PreviewSection
                 selectedFontId={selectedFontId}
-                selectedSizeId={selectedSize.toString()} // PreviewSection still needs a string
+                selectedSizeId={selectedSize.toString()}
+                selectedTextId={selectedTextId}
               />
             </div>
           </div>
