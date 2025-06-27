@@ -19,26 +19,26 @@ export const GUIDELINE_STYLES = {
   // 상단선 (Ascender line) - 대문자 상단
   ascender: {
     color: { r: 0.2, g: 0.2, b: 0.2 },
-    thickness: 0.8,
+    thickness: 0.5,
     style: 'solid' as const
   },
   // 중간선 영역 (X-height area) - 소문자 영역 사각형
   xheight_area: {
     color: { r: 0.0, g: 0.6, b: 0.0 },
-    thickness: 0.6,
+    thickness: 0.5,
     style: 'solid' as const
   },
   // 중간 보조선 (X-height middle) - 소문자 중간 (흐릿하게)
   xheight_mid: {
     color: { r: 0.7, g: 0.85, b: 0.7 },
-    thickness: 0.3,
+    thickness: 0.5,
     style: 'dashed' as const,
     dashArray: [2, 3]
   },
   // 하단선 (Descender line) - 하향 문자 하단
   descender: {
     color: { r: 0.8, g: 0.2, b: 0.2 },
-    thickness: 0.6,
+    thickness: 0.5,
     style: 'solid' as const
   },
   // 텍스트 스타일
