@@ -18,7 +18,7 @@ export default function FontSelector({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between relative">
         <label className="block text-sm font-medium text-gray-700">
           폰트 선택
         </label>
@@ -59,14 +59,8 @@ export default function FontSelector({
                     <h3 className="font-medium text-gray-900">
                       {font.name}
                     </h3>
-                    
-                    {/* 폰트 상태 표시 */}
-                    <FontStatusIndicator state={fontState} isReady={isReady} />
                   </div>
                   
-                  <p className="text-sm text-gray-500 mt-1">
-                    {font.description}
-                  </p>
                 </div>
                 
                 {/* 선택 라디오 버튼 (숨김) */}
@@ -126,13 +120,12 @@ export default function FontSelector({
         })}
       </div>
 
-      {/* 전체 로딩 상태 표시 */}
+      {/* 모든 폰트 로딩 완료 - 우하단 */}
       {loadingCount === 0 && (
-        <div className="text-xs text-green-600 flex items-center justify-center pt-2">
-          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-          모든 폰트 로딩 완료
+        <div className="flex justify-end mt-2">
+          <span className="text-xs text-green-600">
+            모든 폰트 로딩 완료
+          </span>
         </div>
       )}
     </div>
@@ -159,13 +152,9 @@ function FontStatusIndicator({
         </span>
       );
     case 'loaded':
-      return isReady ? (
+      return (
         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
           준비완료
-        </span>
-      ) : (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-          확인중
         </span>
       );
     case 'error':

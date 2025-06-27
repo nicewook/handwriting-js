@@ -15,7 +15,7 @@ export const AVAILABLE_FONTS: FontMetadata[] = [
   {
     id: 'roboto-mono',
     name: 'Roboto Mono',
-    description: '읽기 쉽고 균형 잡힌 모노스페이스 폰트',
+    description: '',
     fileName: 'RobotoMono-ExtraLightItalic.ttf',
     fontFamily: 'RobotoMono',
     weight: '200',
@@ -25,7 +25,7 @@ export const AVAILABLE_FONTS: FontMetadata[] = [
   {
     id: 'jetbrains-mono',
     name: 'JetBrains Mono',
-    description: '개발자를 위한 현대적인 모노스페이스 폰트',
+    description: '',
     fileName: 'JetBrainsMono-ExtraLightItalic.ttf',
     fontFamily: 'JetBrainsMono',
     weight: '200',
@@ -35,7 +35,7 @@ export const AVAILABLE_FONTS: FontMetadata[] = [
   {
     id: 'source-code-pro',
     name: 'Source Code Pro',
-    description: '깔끔하고 전문적인 모노스페이스 폰트',
+    description: '',
     fileName: 'SourceCodePro-ExtraLightItalic.ttf',
     fontFamily: 'SourceCodePro',
     weight: '200',
