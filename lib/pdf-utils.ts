@@ -20,22 +20,78 @@ export interface FontMetrics {
   lineSpacing: number;
 }
 
-// 폰트 파일 로딩 및 메트릭 추출
+// 폰트 파일 로딩 및 메트릭 추출 (Vercel 환경 최적화)
 export async function loadFontMetrics(fontPath: string): Promise<FontMetrics> {
   try {
-    // Node.js 환경에서 폰트 파일 읽기
-    const fullPath = join(process.cwd(), 'public', fontPath);
-    const fontBuffer = await readFile(fullPath);
+    // Vercel 환경을 위한 확장된 경로 전략
+    const fileName = fontPath.split('/').pop() || '';
+    const pathStrategies = [
+      join(process.cwd(), 'public', fontPath),
+      join(process.cwd(), 'public/fonts', fileName),
+      fontPath.startsWith('/') ? join(process.cwd(), 'public', fontPath.slice(1)) : join(process.cwd(), 'public', fontPath),
+      // Vercel 빌드 환경용 추가 경로
+      join(process.cwd(), '.next/static/chunks/app', 'public', fontPath),
+      join(process.cwd(), '.next/server/app', 'public', fontPath),
+      // 절대 경로로 시도
+      join('/', 'var', 'task', 'public', fontPath),
+      join('/', 'var', 'task', 'public/fonts', fileName)
+    ];
+
+    let fontBuffer: Buffer | null = null;
+    let resolvedPath: string = '';
     
-    // OpenType.js로 폰트 분석
-    const font = opentype.parse(fontBuffer.buffer);
+    // 첫 번째로 접근 가능한 경로 사용
+    for (const testPath of pathStrategies) {
+      try {
+        fontBuffer = await readFile(testPath);
+        resolvedPath = testPath;
+        break;
+      } catch {
+        continue;
+      }
+    }
+
+    if (!fontBuffer) {
+      throw new Error(`Font file not found: ${fontPath} (searched multiple paths)`);
+    }
+
+    console.log(`✅ 폰트 파일 로딩 성공: ${resolvedPath}`);
+
+    // 다중 파싱 전략으로 OpenType 파싱 시도
+    const parseStrategies = [
+      () => opentype.parse(fontBuffer!.buffer),
+      () => opentype.parse(fontBuffer!.buffer.slice(fontBuffer!.byteOffset, fontBuffer!.byteOffset + fontBuffer!.byteLength)),
+      () => opentype.parse(new Uint8Array(fontBuffer!).buffer)
+    ];
+
+    let font: opentype.Font | null = null;
+    for (let i = 0; i < parseStrategies.length; i++) {
+      try {
+        font = parseStrategies[i]();
+        console.log(`✅ 폰트 파싱 성공 (방법 ${i + 1})`);
+        break;
+      } catch (parseError) {
+        console.warn(`⚠️ 파싱 방법 ${i + 1} 실패:`, parseError);
+        continue;
+      }
+    }
+
+    if (!font) {
+      throw new Error(`Failed to parse font file: ${fontPath}`);
+    }
     
     const upem = font.unitsPerEm;
     const xHeight = font.tables.os2?.sxHeight || upem * 0.5; // fallback
     
-    if (!upem || !xHeight) {
-      throw new Error('Invalid font metrics');
+    if (!upem || upem <= 0) {
+      throw new Error(`Invalid unitsPerEm: ${upem}`);
     }
+    
+    if (!xHeight || xHeight <= 0) {
+      throw new Error(`Invalid xHeight: ${xHeight}`);
+    }
+
+    console.log(`📊 폰트 메트릭: upem=${upem}, xHeight=${xHeight}`);
     
     return {
       upem,
@@ -45,7 +101,7 @@ export async function loadFontMetrics(fontPath: string): Promise<FontMetrics> {
     };
   } catch (error) {
     console.error('Font loading error:', error);
-    throw new Error(`Failed to load font: ${fontPath}`);
+    throw new Error(`Failed to load font: ${fontPath} - ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -251,9 +307,38 @@ export async function generateHandwritingPDF(options: PDFGenerationOptions): Pro
     const page = doc.addPage(PageSizes.A4);
     const { width, height } = page.getSize();
     
-    // 3. 폰트 임베딩
-    const fontPath = join(process.cwd(), 'public', options.font.filePath);
-    const fontBytes = await readFile(fontPath);
+    // 3. 폰트 임베딩 (Vercel 환경을 위한 확장된 경로 전략)
+    const fileName = options.font.filePath.split('/').pop() || '';
+    const pathStrategies = [
+      join(process.cwd(), 'public', options.font.filePath),
+      join(process.cwd(), 'public/fonts', fileName),
+      options.font.filePath.startsWith('/') ? join(process.cwd(), 'public', options.font.filePath.slice(1)) : join(process.cwd(), 'public', options.font.filePath),
+      // Vercel 빌드 환경용 추가 경로
+      join(process.cwd(), '.next/static/chunks/app', 'public', options.font.filePath),
+      join(process.cwd(), '.next/server/app', 'public', options.font.filePath),
+      // 절대 경로로 시도
+      join('/', 'var', 'task', 'public', options.font.filePath),
+      join('/', 'var', 'task', 'public/fonts', fileName)
+    ];
+
+    let fontBytes: Buffer | null = null;
+    let resolvedPath: string = '';
+    
+    for (const testPath of pathStrategies) {
+      try {
+        fontBytes = await readFile(testPath);
+        resolvedPath = testPath;
+        console.log(`✅ PDF 폰트 파일 로딩 성공: ${resolvedPath}`);
+        break;
+      } catch {
+        continue;
+      }
+    }
+
+    if (!fontBytes) {
+      throw new Error(`Font file not found for PDF embedding: ${options.font.filePath}`);
+    }
+
     const customFont = await doc.embedFont(fontBytes);
     
     // 4. 텍스트 처리
@@ -315,16 +400,82 @@ export async function generateHandwritingPDF(options: PDFGenerationOptions): Pro
   }
 }
 
-// 폰트 파일 유효성 검증
+// 폰트 파일 유효성 검증 (Vercel 환경 최적화)
 export async function validateFontFile(fontPath: string): Promise<boolean> {
   try {
-    const fullPath = join(process.cwd(), 'public', fontPath);
-    const fontBuffer = await readFile(fullPath);
-    const font = opentype.parse(fontBuffer.buffer);
+    // Vercel 환경을 위한 확장된 경로 전략
+    const fileName = fontPath.split('/').pop() || '';
+    const pathStrategies = [
+      join(process.cwd(), 'public', fontPath),
+      join(process.cwd(), 'public/fonts', fileName),
+      fontPath.startsWith('/') ? join(process.cwd(), 'public', fontPath.slice(1)) : join(process.cwd(), 'public', fontPath),
+      // Vercel 빌드 환경용 추가 경로
+      join(process.cwd(), '.next/static/chunks/app', 'public', fontPath),
+      join(process.cwd(), '.next/server/app', 'public', fontPath),
+      // 절대 경로로 시도
+      join('/', 'var', 'task', 'public', fontPath),
+      join('/', 'var', 'task', 'public/fonts', fileName)
+    ];
+
+    let fontBuffer: Buffer | null = null;
     
-    // 필수 메트릭 확인
-    return !!(font.unitsPerEm && font.tables.os2?.sxHeight);
-  } catch {
+    // 첫 번째로 접근 가능한 경로 사용
+    for (const testPath of pathStrategies) {
+      try {
+        fontBuffer = await readFile(testPath);
+        break;
+      } catch {
+        continue;
+      }
+    }
+
+    if (!fontBuffer) {
+      console.warn(`Font file not found: ${fontPath}`);
+      return false;
+    }
+
+    // 다중 파싱 전략으로 OpenType 파싱 시도
+    const parseStrategies = [
+      () => opentype.parse(fontBuffer!.buffer),
+      () => opentype.parse(fontBuffer!.buffer.slice(fontBuffer!.byteOffset, fontBuffer!.byteOffset + fontBuffer!.byteLength)),
+      () => opentype.parse(new Uint8Array(fontBuffer!).buffer)
+    ];
+
+    let font: opentype.Font | null = null;
+    for (const parseStrategy of parseStrategies) {
+      try {
+        font = parseStrategy();
+        break;
+      } catch {
+        continue;
+      }
+    }
+
+    if (!font) {
+      console.warn(`Failed to parse font file: ${fontPath}`);
+      return false;
+    }
+
+    // 메트릭 검증 (fallback 포함)
+    const hasValidUnitsPerEm = font.unitsPerEm > 0;
+    const hasValidXHeight = (font.tables.os2?.sxHeight ?? 0) > 0;
+    
+    // sxHeight가 없는 경우 대체값 사용 (일반적인 비율)
+    const calculatedXHeight = hasValidXHeight ? font.tables.os2.sxHeight : (font.unitsPerEm * 0.5);
+    
+    const isValid = hasValidUnitsPerEm && calculatedXHeight > 0;
+    
+    if (!isValid) {
+      console.warn(`Font metrics validation failed: ${fontPath}`, {
+        unitsPerEm: font.unitsPerEm,
+        sxHeight: font.tables.os2?.sxHeight,
+        hasOS2Table: !!font.tables.os2
+      });
+    }
+
+    return isValid;
+  } catch (error) {
+    console.error(`Font validation error for ${fontPath}:`, error);
     return false;
   }
 }

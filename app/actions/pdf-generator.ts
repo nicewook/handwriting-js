@@ -91,15 +91,28 @@ export async function generatePDF(formData: FormData): Promise<PDFGenerationResu
       throw new Error('Font or fontSize validation failed');
     }
     
-    // 3. 폰트 파일 유효성 검증
+    // 3. 폰트 파일 유효성 검증 (상세 로깅 포함)
     console.log(`🔍 폰트 파일 검증 중: ${font.filePath}`);
+    console.log(`📁 현재 작업 디렉토리: ${process.cwd()}`);
+    console.log(`🌍 실행 환경: ${process.env.VERCEL ? 'Vercel' : 'Local'}`);
+    
     const isFontValid = await validateFontFile(font.filePath);
     if (!isFontValid) {
       const error = `Font file validation failed: ${font.filePath}`;
       console.error('❌', error);
+      
+      // 디버깅을 위한 추가 정보
+      console.error('🔍 디버깅 정보:');
+      console.error(`  - 폰트 ID: ${font.id}`);
+      console.error(`  - 폰트 이름: ${font.name}`);
+      console.error(`  - 파일명: ${font.fileName}`);
+      console.error(`  - 파일 경로: ${font.filePath}`);
+      console.error(`  - Node.js 버전: ${process.version}`);
+      console.error(`  - 플랫폼: ${process.platform}`);
+      
       return {
         success: false,
-        error
+        error: `${error} (폰트: ${font.name})`
       };
     }
     
