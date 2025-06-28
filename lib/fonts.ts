@@ -7,7 +7,8 @@ export interface FontMetadata {
   fontFamily: string;
   weight: string;
   style: string;
-  filePath: string;
+  filePath: string;        // 서버 사이드 PDF 생성용 (assets/fonts/)
+  webFilePath: string;     // 웹폰트 CSS용 (public/fonts/)
 }
 
 // 사용 가능한 폰트 목록
@@ -20,7 +21,8 @@ export const AVAILABLE_FONTS: FontMetadata[] = [
     fontFamily: 'RobotoMono',
     weight: '200',
     style: 'italic',
-    filePath: '/fonts/RobotoMono-ExtraLightItalic.ttf'
+    filePath: 'assets/fonts/RobotoMono-ExtraLightItalic.ttf',
+    webFilePath: '/fonts/RobotoMono-ExtraLightItalic.ttf'
   },
   {
     id: 'jetbrains-mono',
@@ -30,7 +32,8 @@ export const AVAILABLE_FONTS: FontMetadata[] = [
     fontFamily: 'JetBrainsMono',
     weight: '200',
     style: 'italic',
-    filePath: '/fonts/JetBrainsMono-ExtraLightItalic.ttf'
+    filePath: 'assets/fonts/JetBrainsMono-ExtraLightItalic.ttf',
+    webFilePath: '/fonts/JetBrainsMono-ExtraLightItalic.ttf'
   },
   {
     id: 'source-code-pro',
@@ -40,7 +43,8 @@ export const AVAILABLE_FONTS: FontMetadata[] = [
     fontFamily: 'SourceCodePro',
     weight: '200',
     style: 'italic',
-    filePath: '/fonts/SourceCodePro-ExtraLightItalic.ttf'
+    filePath: 'assets/fonts/SourceCodePro-ExtraLightItalic.ttf',
+    webFilePath: '/fonts/SourceCodePro-ExtraLightItalic.ttf'
   }
 ];
 
@@ -107,7 +111,7 @@ export function generateFontFaceCSS(font: FontMetadata): string {
   return `
     @font-face {
       font-family: '${font.fontFamily}';
-      src: url('${font.filePath}') format('truetype');
+      src: url('${font.webFilePath}') format('truetype');
       font-weight: ${font.weight};
       font-style: ${font.style};
       font-display: swap;
