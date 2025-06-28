@@ -19,6 +19,7 @@ const previewSizes = [
 
 export default function PreviewSection({ 
   selectedFontId, 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   selectedSizeId, // This prop is now unused but kept for compatibility
   selectedTextId,
   className = '' 

@@ -80,7 +80,7 @@ export const FONT_SIZES: FontSize[] = [
   }
 ];
 
-// export const DEFAULT_FONT_SIZE_ID = 'medium';
+export const DEFAULT_FONT_SIZE_ID = 'medium';
 
 // 미리보기 텍스트
 export const PREVIEW_TEXT = "The quick brown fox jumps over the lazy dog.";

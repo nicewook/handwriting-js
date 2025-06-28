@@ -16,7 +16,7 @@ import {
   FontMetadata,
   FontSize
 } from '@/lib/fonts';
-import { OUTPUT_SETTINGS, TEXT_OPTIONS, TextOptionId } from '@/lib/constants';
+import { OUTPUT_SETTINGS, TEXT_OPTIONS } from '@/lib/constants';
 
 // Server Action 결과 타입
 export interface PDFGenerationResult {
@@ -118,7 +118,7 @@ export async function generatePDF(formData: FormData): Promise<PDFGenerationResu
     if (textId) {
       const selectedTextOption = TEXT_OPTIONS.find(option => option.id === textId);
       if (selectedTextOption) {
-        textsToUse = selectedTextOption.texts;
+        textsToUse = [...selectedTextOption.texts];
         console.log(`📝 선택된 텍스트 옵션 사용: ${selectedTextOption.name} (${textsToUse.length}개 블록)`);
       }
     }

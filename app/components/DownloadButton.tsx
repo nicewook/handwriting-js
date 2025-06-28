@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getFontById, FONT_SIZES } from '@/lib/fonts';
+import { getFontById } from '@/lib/fonts';
 import { generatePDF } from '@/app/actions/pdf-generator';
 import { TEXT_OPTIONS, TextOptionId } from '@/lib/constants';
 
