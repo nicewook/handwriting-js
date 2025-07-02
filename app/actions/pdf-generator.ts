@@ -175,7 +175,7 @@ export async function generatePDF(formData: FormData): Promise<PDFGenerationResu
         color: rgb(0, 0, 0)
       });
       
-      page.drawText(`Font: ${font.name} (문제로 인해 기본 폰트 사용)`, {
+      page.drawText(`Font: ${font.name} (using fallback font due to error)`, {
         x: 50,
         y: height - 100,
         size: 16,

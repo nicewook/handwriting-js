@@ -299,7 +299,9 @@ export async function generateHandwritingPDF(options: PDFGenerationOptions): Pro
       throw new Error(`Font file is empty for PDF embedding: ${options.font.filePath}`);
     }
 
-    const customFont = await doc.embedFont(fontBytes);
+    const customFont = await doc.embedFont(fontBytes, {
+      subset: true,  // 유니코드 서브셋 활성화 (한글 지원)
+    });
     
     // 4. 텍스트 처리
     const textsToUse = options.customTexts || [...PRACTICE_TEXTS]; // readonly 배열을 mutable로 변환
@@ -333,17 +335,36 @@ export async function generateHandwritingPDF(options: PDFGenerationOptions): Pro
         if (textIndex < wrappedLines.length) {
           const text = wrappedLines[textIndex];
           
-          page.drawText(text, {
-            x: PAGE_LAYOUT.LEFT_MARGIN + GUIDELINE_STYLES.text.leftMargin,
-            y: guidelines.baselineY,
-            font: customFont,
-            size: calculatedMetrics.calculatedFontSize,
-            color: rgb(
-              GUIDELINE_STYLES.text.color.r,
-              GUIDELINE_STYLES.text.color.g,
-              GUIDELINE_STYLES.text.color.b
-            )
-          });
+          try {
+            page.drawText(text, {
+              x: PAGE_LAYOUT.LEFT_MARGIN + GUIDELINE_STYLES.text.leftMargin,
+              y: guidelines.baselineY,
+              font: customFont,
+              size: calculatedMetrics.calculatedFontSize,
+              color: rgb(
+                GUIDELINE_STYLES.text.color.r,
+                GUIDELINE_STYLES.text.color.g,
+                GUIDELINE_STYLES.text.color.b
+              )
+            });
+          } catch (textError) {
+            console.warn(`⚠️ 텍스트 렌더링 실패 (라인 ${i}): ${textError instanceof Error ? textError.message : 'Unknown error'}`);
+            console.warn(`   텍스트: "${text}"`);
+            
+            // 한글이 포함된 텍스트의 경우 영어로 대체
+            const fallbackText = "Handwriting practice line";
+            try {
+              page.drawText(fallbackText, {
+                x: PAGE_LAYOUT.LEFT_MARGIN + GUIDELINE_STYLES.text.leftMargin,
+                y: guidelines.baselineY,
+                font: customFont,
+                size: calculatedMetrics.calculatedFontSize,
+                color: rgb(0.7, 0.7, 0.7) // 연한 회색으로 표시
+              });
+            } catch (fallbackError) {
+              console.error(`❌ 폴백 텍스트 렌더링도 실패: ${fallbackError}`);
+            }
+          }
         }
       }
     }

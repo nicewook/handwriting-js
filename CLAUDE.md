@@ -80,17 +80,19 @@ The application follows a layered architecture with a complex PDF generation pip
 ## Critical Technical Details
 
 ### Font Loading in Vercel Environment
-The application implements a sophisticated multi-strategy font loading system to handle Vercel's serverless environment constraints:
+**RESOLVED**: Following Gemini's recommendation, font files have been moved from `public/fonts/` to `assets/fonts/` directory to ensure they are included in Vercel's serverless function bundle:
 
 ```typescript
-// Path strategies attempted in order:
-1. process.cwd()/public/fonts/
-2. LAMBDA_TASK_ROOT/public/fonts/ (Vercel serverless)
-3. .next/standalone/public/fonts/
-4. .vercel/output/static/fonts/
-5. Various __dirname relative paths
-6. Absolute /var/task/ paths
+// Current simplified approach:
+const resolvedPath = join(process.cwd(), fontPath); // e.g., "assets/fonts/RobotoMono-ExtraLightItalic.ttf"
+const fontBuffer = await readFile(resolvedPath);
 ```
+
+**Key Changes**:
+- Font files relocated to `assets/fonts/` (included in serverless bundle)
+- Removed complex multi-strategy path resolution (327 lines → simple single path)
+- Maintained `public/fonts/` copies for web font CSS (client-side preview)
+- Added `webFilePath` property to FontMetadata for client/server path separation
 
 ### PDF Generation Pipeline
 1. **Font Validation**: Verifies TTF file accessibility and OpenType parsing
@@ -98,29 +100,39 @@ The application implements a sophisticated multi-strategy font loading system to
 3. **Dynamic Sizing**: Adjusts font size to fit predefined line spacing zones
 4. **Text Wrapping**: Intelligent word wrapping based on actual text width measurements
 5. **Guideline Drawing**: Renders 4-zone system with precise positioning
-6. **Font Embedding**: Embeds custom TTF fonts into PDF using pdf-lib + fontkit
+6. **Font Embedding**: Embeds custom TTF fonts with Unicode subset support:
+   ```typescript
+   const customFont = await doc.embedFont(fontBytes, {
+     subset: true,  // Unicode subset activation for Korean text support
+   });
+   ```
+7. **Text Rendering**: Includes fallback handling for encoding issues
 
 ### Known Issues & Debugging
 
-**Vercel Production Font Loading**: The most common issue is font file accessibility in Vercel's serverless environment. The application includes extensive debugging:
+**RESOLVED - Font Loading**: Previously complex Vercel serverless font loading issues have been resolved by moving fonts to `assets/fonts/` directory.
 
-- Environment variable logging (VERCEL, LAMBDA_TASK_ROOT, etc.)
-- Directory structure exploration when fonts aren't found
-- Multiple parsing strategies for OpenType.js compatibility
-- Graceful fallback to basic PDF with system fonts
+**RESOLVED - Unicode Encoding**: WinAnsi encoding errors with Korean text have been resolved by:
+- Adding `subset: true` option to font embedding for Unicode support
+- Implementing fallback text rendering for encoding failures
+- Removing Korean text from fallback PDF messages
 
-When troubleshooting font issues:
-1. Check the PDF generation Server Action logs in Vercel function logs
-2. Look for "🔍 [validateFontFile]" debug messages
-3. Verify font files exist in `public/fonts/` directory
-4. Consider the extensive path strategy logs to identify which approach succeeded
+**Current Debugging Approach**:
+- Simple path resolution logging: `join(process.cwd(), fontPath)`
+- Font file validation with basic error handling
+- Text rendering with graceful fallback to English text
+
+**Troubleshooting Steps**:
+1. Verify font files exist in `assets/fonts/` directory
+2. Check console logs for "🔍 [loadFontMetrics]" messages
+3. Ensure fonts support required character sets (especially for non-English text)
 
 ## File Structure Highlights
 
 ```
 lib/
-├── pdf-utils.ts          # Core PDF generation with Vercel compatibility
-├── fonts.ts              # Font metadata and utility functions
+├── pdf-utils.ts          # Core PDF generation (simplified font loading)
+├── fonts.ts              # Font metadata with webFilePath/filePath separation
 ├── constants.ts          # Layout, styling, and text configuration
 └── hooks/
     └── useFontLoader.ts   # Client-side font loading for previews
@@ -131,8 +143,14 @@ app/
 ├── components/           # React components for UI
 └── page.tsx             # Main application page
 
+assets/
+└── fonts/               # TTF font files (serverless bundle included)
+    ├── RobotoMono-ExtraLightItalic.ttf
+    ├── JetBrainsMono-ExtraLightItalic.ttf
+    └── SourceCodePro-ExtraLightItalic.ttf
+
 public/
-└── fonts/               # TTF font files (critical for PDF generation)
+└── fonts/               # TTF font files (web font CSS only)
     ├── RobotoMono-ExtraLightItalic.ttf
     ├── JetBrainsMono-ExtraLightItalic.ttf
     └── SourceCodePro-ExtraLightItalic.ttf
@@ -159,3 +177,10 @@ The 4-zone system is designed for professional handwriting practice:
 - **Text positioning**: Sample text placed on baseline with proper margins
 
 The system ensures consistent proportions regardless of font choice by using OpenType metrics to calculate optimal sizing.
+
+## AI Interaction Guidelines
+
+### Translation and Execution Strategy
+- When receiving requests in Korean, first rephrase the prompt into natural English expression
+- Translate the prompt while preserving the original intent and context
+- Execute the command using the translated, grammatically correct English version
