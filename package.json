@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docs": "cd docs/generator && node docs-generator.js",
+    "docs:watch": "cd docs/generator && node docs-generator.js --watch",
+    "docs:dark": "cd docs/generator && node docs-generator.js --theme dark",
+    "docs:github": "cd docs/generator && node docs-generator.js --theme github"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
@@ -25,6 +29,9 @@
     "eslint-config-next": "14.2.30",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "chokidar": "^4.0.3",
+    "gray-matter": "^4.0.3",
+    "marked": "^16.0.0"
   }
 }

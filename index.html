@@ -1,0 +1,1138 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>handwriting notebook</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard Variable", Pretendard, "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* 사이드바 스타일 */
+        .sidebar {
+            width: 300px;
+            background: #2c3e50;
+            color: white;
+            overflow-y: auto;
+            border-right: 1px solid #34495e;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: #34495e;
+            border-bottom: 1px solid #4a5f7a;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header .subtitle {
+            font-size: 0.9em;
+            color: #bdc3c7;
+        }
+        
+        .sidebar-category {
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .sidebar-category-title {
+            padding: 15px 20px;
+            background: #2c3e50;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+        
+        .sidebar-category-title:hover {
+            background: #34495e;
+        }
+        
+        .sidebar-category-title:after {
+            content: '▼';
+            position: absolute;
+            right: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .sidebar-category-title.collapsed:after {
+            transform: rotate(-90deg);
+        }
+        
+        .sidebar-files {
+            background: #34495e;
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .sidebar-files.collapsed {
+            max-height: 0;
+        }
+        
+        .sidebar-file {
+            padding: 12px 20px 12px 40px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-left: 3px solid transparent;
+            font-size: 0.9em;
+        }
+        
+        .sidebar-file:hover {
+            background: #4a5f7a;
+        }
+        
+        .sidebar-file.active {
+            background: #3498db;
+            border-left-color: #2980b9;
+            font-weight: 500;
+        }
+        
+        /* 메인 콘텐츠 스타일 */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+        }
+        
+        .file-content-wrapper {
+            display: none;
+            padding: 40px 60px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .file-content-wrapper.active {
+            display: block;
+        }
+        
+        .file-header {
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .file-title {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            font-weight: 300;
+        }
+        
+        .file-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        
+        .file-category {
+            background: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .file-date {
+            background: #e8f4f8;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .file-path {
+            font-family: 'SF Mono', Monaco, monospace;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+        
+        .file-content {
+            line-height: 1.8;
+            font-size: 1.1em;
+        }
+        
+        .file-content h1 {
+            color: #2c3e50;
+            margin: 40px 0 20px 0;
+            font-size: 2em;
+            font-weight: 400;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        
+        .file-content h2 {
+            color: #2c3e50;
+            margin: 35px 0 15px 0;
+            font-size: 1.5em;
+            font-weight: 500;
+        }
+        
+        .file-content h3 {
+            color: #2c3e50;
+            margin: 25px 0 10px 0;
+            font-size: 1.25em;
+            font-weight: 500;
+        }
+        
+        .file-content p {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .file-content pre {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            overflow-x: auto;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        
+        .file-content code {
+            background: #f8f9fa;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+        }
+        
+        .file-content pre code {
+            background: none;
+            padding: 0;
+            color: #2c3e50;
+        }
+        
+        .file-content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 25px 0;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .file-content ul, .file-content ol {
+            margin: 15px 0 15px 30px;
+        }
+        
+        .file-content li {
+            margin-bottom: 8px;
+        }
+        
+        .file-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+        }
+        
+        .file-content th, .file-content td {
+            border: 1px solid #ecf0f1;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .file-content th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 100px 40px;
+            color: #7f8c8d;
+        }
+        
+        .empty-state h2 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 250px;
+            }
+            
+            .file-content-wrapper {
+                padding: 20px 30px;
+            }
+            
+            .file-title {
+                font-size: 2em;
+            }
+        }
+        
+        /* 스크롤바 스타일 */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #2c3e50;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #4a5f7a;
+            border-radius: 3px;
+        }
+        
+        .main-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .main-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .main-content::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>📚 handwriting notebook</h1>
+                <div class="subtitle">Project Documentation</div>
+            </div>
+            
+        <div class="sidebar-category">
+          <div class="sidebar-category-title" onclick="toggleCategory('Root', this)">Root</div>
+          <div class="sidebar-files" id="category-Root">
+            
+              <div class="sidebar-file" onclick="showFile('Root-0', this)">
+                README
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="sidebar-category">
+          <div class="sidebar-category-title" onclick="toggleCategory('documentation', this)">documentation</div>
+          <div class="sidebar-files" id="category-documentation">
+            
+              <div class="sidebar-file" onclick="showFile('documentation-0', this)">
+                tech_stack
+              </div>
+            
+              <div class="sidebar-file" onclick="showFile('documentation-1', this)">
+                task_completion_checklist
+              </div>
+            
+              <div class="sidebar-file" onclick="showFile('documentation-2', this)">
+                suggested_commands
+              </div>
+            
+              <div class="sidebar-file" onclick="showFile('documentation-3', this)">
+                project_structure
+              </div>
+            
+              <div class="sidebar-file" onclick="showFile('documentation-4', this)">
+                project_overview
+              </div>
+            
+              <div class="sidebar-file" onclick="showFile('documentation-5', this)">
+                code_style_conventions
+              </div>
+            
+              <div class="sidebar-file" onclick="showFile('documentation-6', this)">
+                architecture_patterns
+              </div>
+            
+              <div class="sidebar-file" onclick="showFile('documentation-7', this)">
+                CLAUDE
+              </div>
+            
+          </div>
+        </div>
+      
+        </div>
+        
+        <div class="main-content">
+            
+          <div class="file-content-wrapper active" id="content-Root-0">
+            <div class="file-header">
+              <h1 class="file-title">README</h1>
+              <div class="file-meta">
+                <span class="file-category">Root</span>
+                <span class="file-date">8/12/2025</span>
+                <span class="file-path">README.md</span>
+              </div>
+            </div>
+            <div class="file-content">
+              <h1>핸드라이팅 연습 시트 생성기 (Handwriting Practice Sheet Generator)</h1>
+<p>다양한 폰트와 사이즈로 나만의 핸드라이팅 연습 시트를 만들 수 있는 웹 애플리케이션입니다.</p>
+<h2>기능 (Features)</h2>
+<ul>
+<li>🖋️ 다양한 폰트 선택 (Multiple font options)</li>
+<li>📏 사이즈 조절 기능 (Adjustable font sizes)</li>
+<li>👀 실시간 미리보기 (Real-time preview)</li>
+<li>📄 PDF 다운로드 (PDF download)</li>
+<li>🎨 깔끔한 사용자 인터페이스 (Clean user interface)</li>
+</ul>
+<h2>기술 스택 (Tech Stack)</h2>
+<ul>
+<li><strong>Frontend</strong>: Next.js 14, React 18, TypeScript</li>
+<li><strong>Styling</strong>: Tailwind CSS</li>
+<li><strong>PDF Generation</strong>: PDF-lib, @pdf-lib/fontkit</li>
+<li><strong>Font Processing</strong>: OpenType.js</li>
+</ul>
+<h2>시작하기 (Getting Started)</h2>
+<h3>필수 조건 (Prerequisites)</h3>
+<ul>
+<li>Node.js 18.17 또는 그 이상</li>
+<li>npm 또는 yarn</li>
+</ul>
+<h3>설치 (Installation)</h3>
+<pre><code class="language-bash"># 저장소 클론
+git clone &lt;repository-url&gt;
+cd handwriting-js
+
+# 의존성 설치
+npm install
+
+# 개발 서버 실행
+npm run dev
+</code></pre>
+<p>애플리케이션이 <a href="http://localhost:3000">http://localhost:3000</a>에서 실행됩니다.</p>
+<h3>빌드 (Build)</h3>
+<pre><code class="language-bash"># 프로덕션 빌드
+npm run build
+
+# 프로덕션 서버 실행
+npm start
+</code></pre>
+<h2>사용법 (Usage)</h2>
+<ol>
+<li><strong>폰트 선택</strong>: 왼쪽 패널에서 원하는 폰트를 선택합니다</li>
+<li><strong>사이즈 조절</strong>: 글자 크기를 선택합니다</li>
+<li><strong>미리보기</strong>: 오른쪽 패널에서 실시간으로 결과를 확인합니다</li>
+<li><strong>다운로드</strong>: PDF 다운로드 버튼을 클릭하여 연습 시트를 저장합니다</li>
+</ol>
+<h2>개발 명령어 (Development Commands)</h2>
+<pre><code class="language-bash">npm run dev      # 개발 서버 실행
+npm run build    # 프로덕션 빌드
+npm run start    # 프로덕션 서버 실행
+npm run lint     # ESLint 실행
+</code></pre>
+<h2>프로젝트 구조 (Project Structure)</h2>
+<pre><code>handwriting-js/
+├── app/
+│   ├── components/          # React 컴포넌트
+│   │   ├── FontSelector.tsx
+│   │   ├── SizeSelector.tsx
+│   │   ├── PreviewSection.tsx
+│   │   └── DownloadButton.tsx
+│   ├── actions/             # Server Actions
+│   ├── layout.tsx
+│   └── page.tsx
+├── lib/                     # 유틸리티 및 설정
+├── public/                  # 정적 파일
+└── reference/              # 참고 자료 및 할일 목록
+</code></pre>
+<h2>할일 목록 (Todo List)</h2>
+<p>자세한 개발 계획은 <a href="./reference/todo.md">reference/todo.md</a>를 참조하세요.</p>
+<h2>기여하기 (Contributing)</h2>
+<ol>
+<li>이 저장소를 포크합니다</li>
+<li>기능 브랜치를 생성합니다 (<code>git checkout -b feature/amazing-feature</code>)</li>
+<li>변경사항을 커밋합니다 (<code>git commit -m &#39;Add amazing feature&#39;</code>)</li>
+<li>브랜치에 푸시합니다 (<code>git push origin feature/amazing-feature</code>)</li>
+<li>Pull Request를 생성합니다</li>
+</ol>
+<h2>라이선스 (License)</h2>
+<p>이 프로젝트는 MIT 라이선스 하에 배포됩니다.</p>
+
+            </div>
+          </div>
+        
+          <div class="file-content-wrapper " id="content-documentation-0">
+            <div class="file-header">
+              <h1 class="file-title">tech_stack</h1>
+              <div class="file-meta">
+                <span class="file-category">documentation</span>
+                <span class="file-date">8/12/2025</span>
+                <span class="file-path">docs/tech_stack.md</span>
+              </div>
+            </div>
+            <div class="file-content">
+              <h1>Tech Stack</h1>
+<h2>Frontend Framework</h2>
+<ul>
+<li><strong>Next.js 14.2.30</strong> - React framework with App Router</li>
+<li><strong>React 18</strong> - Component library</li>
+<li><strong>TypeScript 5</strong> - Type safety</li>
+<li><strong>Tailwind CSS 3.4.1</strong> - Styling system</li>
+</ul>
+<h2>PDF Generation</h2>
+<ul>
+<li><strong>pdf-lib ^1.17.1</strong> - PDF document creation and manipulation</li>
+<li><strong>@pdf-lib/fontkit ^1.1.1</strong> - Custom font embedding support</li>
+<li><strong>opentype.js ^1.3.4</strong> - Font analysis and metrics extraction</li>
+</ul>
+<h2>Development Tools</h2>
+<ul>
+<li><strong>ESLint 8</strong> - Code linting with Next.js configuration</li>
+<li><strong>PostCSS 8</strong> - CSS processing</li>
+<li><strong>TypeScript strict mode</strong> - Enhanced type checking</li>
+</ul>
+<h2>Documentation Tools (Custom)</h2>
+<ul>
+<li><strong>Chokidar ^4.0.3</strong> - File watching for docs generation</li>
+<li><strong>Gray-matter ^4.0.3</strong> - Markdown frontmatter parsing</li>
+<li><strong>Marked ^16.0.0</strong> - Markdown processing</li>
+</ul>
+<h2>Runtime Environment</h2>
+<ul>
+<li><strong>Node.js v22.17.1</strong> (via nvm)</li>
+<li><strong>npm 10.9.2</strong> - Package manager</li>
+<li><strong>Vercel</strong> - Deployment platform (serverless functions)</li>
+</ul>
+<h2>File System Structure</h2>
+<ul>
+<li><strong>App Router</strong> - Next.js 14 app directory structure</li>
+<li><strong>TypeScript paths</strong> - <code>@/*</code> alias for root imports</li>
+<li><strong>Dual font storage</strong> - assets/fonts/ (server) + public/fonts/ (web)</li>
+</ul>
+
+            </div>
+          </div>
+        
+          <div class="file-content-wrapper " id="content-documentation-1">
+            <div class="file-header">
+              <h1 class="file-title">task_completion_checklist</h1>
+              <div class="file-meta">
+                <span class="file-category">documentation</span>
+                <span class="file-date">8/12/2025</span>
+                <span class="file-path">docs/task_completion_checklist.md</span>
+              </div>
+            </div>
+            <div class="file-content">
+              <h1>Task Completion Checklist</h1>
+<h2>Pre-Commit Validation</h2>
+<h3>Code Quality</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Run ESLint</strong>: <code>npm run lint</code> - Must pass without errors</li>
+<li><input disabled="" type="checkbox"> <strong>TypeScript Check</strong>: Ensure no type errors in IDE</li>
+<li><input disabled="" type="checkbox"> <strong>Build Verification</strong>: <code>npm run build</code> - Must complete successfully</li>
+<li><input disabled="" type="checkbox"> <strong>Code Style</strong>: Follow established conventions (see code_style_conventions.md)</li>
+</ul>
+<h3>Functionality Testing</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>PDF Generation</strong>: Test core functionality by generating a PDF</li>
+<li><input disabled="" type="checkbox"> <strong>Font Loading</strong>: Verify fonts load correctly in preview</li>
+<li><input disabled="" type="checkbox"> <strong>UI Components</strong>: Check all interactive components work</li>
+<li><input disabled="" type="checkbox"> <strong>Responsive Design</strong>: Test on different screen sizes</li>
+</ul>
+<h3>File System Validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Font Files</strong>: Ensure TTF files exist in both assets/ and public/</li>
+<li><input disabled="" type="checkbox"> <strong>Import Paths</strong>: Verify all imports use correct paths (<code>@/</code> alias)</li>
+<li><input disabled="" type="checkbox"> <strong>File Naming</strong>: Follow naming conventions</li>
+</ul>
+<h2>Deployment Readiness</h2>
+<h3>Vercel Environment</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Font Loading</strong>: Verify assets/fonts/ directory contains required TTF files</li>
+<li><input disabled="" type="checkbox"> <strong>Serverless Compatibility</strong>: Ensure no file system dependencies beyond bundle</li>
+<li><input disabled="" type="checkbox"> <strong>Environment Variables</strong>: Check if any environment-specific configurations needed</li>
+</ul>
+<h3>Performance</h3>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Bundle Size</strong>: Check for unnecessary dependencies</li>
+<li><input disabled="" type="checkbox"> <strong>Font Optimization</strong>: Ensure font subset embedding works correctly</li>
+<li><input disabled="" type="checkbox"> <strong>PDF Generation Speed</strong>: Verify reasonable generation time</li>
+</ul>
+<h2>Documentation</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Code Comments</strong>: Add Korean comments for business logic</li>
+<li><input disabled="" type="checkbox"> <strong>Function Documentation</strong>: Update JSDoc comments if needed</li>
+<li><input disabled="" type="checkbox"> <strong>CLAUDE.md</strong>: Update project instructions if architecture changes</li>
+</ul>
+<h2>Git Workflow</h2>
+<ol>
+<li><strong>Stage Changes</strong>: <code>git add .</code></li>
+<li><strong>Commit</strong>: <code>git commit -m &quot;descriptive message&quot;</code></li>
+<li><strong>Push</strong>: <code>git push</code> (if ready for deployment)</li>
+</ol>
+<h2>Emergency Checks</h2>
+<p>If PDF generation fails:</p>
+<ol>
+<li>Check font file accessibility in assets/fonts/</li>
+<li>Verify OpenType.js can parse the fonts</li>
+<li>Check console logs for font loading errors</li>
+<li>Test with different font selections</li>
+</ol>
+<h2>Success Criteria</h2>
+<ul>
+<li>✅ ESLint passes</li>
+<li>✅ TypeScript compiles without errors</li>
+<li>✅ Production build succeeds</li>
+<li>✅ PDF generation works with all fonts</li>
+<li>✅ Preview functionality works correctly</li>
+<li>✅ No console errors in browser</li>
+</ul>
+
+            </div>
+          </div>
+        
+          <div class="file-content-wrapper " id="content-documentation-2">
+            <div class="file-header">
+              <h1 class="file-title">suggested_commands</h1>
+              <div class="file-meta">
+                <span class="file-category">documentation</span>
+                <span class="file-date">8/12/2025</span>
+                <span class="file-path">docs/suggested_commands.md</span>
+              </div>
+            </div>
+            <div class="file-content">
+              <h1>Suggested Commands</h1>
+<h2>Development Commands</h2>
+<h3>Core Development</h3>
+<pre><code class="language-bash">npm run dev        # Start development server at localhost:3000
+npm run build      # Production build
+npm run start      # Start production server
+npm run lint       # Run ESLint linting
+</code></pre>
+<h3>Documentation Generation</h3>
+<pre><code class="language-bash">npm run docs       # Generate documentation
+npm run docs:watch # Generate docs with file watching
+npm run docs:dark  # Generate docs with dark theme
+npm run docs:github # Generate docs with GitHub theme
+</code></pre>
+<h3>Git Operations</h3>
+<pre><code class="language-bash">git status         # Check repository status
+git add .          # Stage all changes
+git commit -m &quot;message&quot; # Commit with message
+git push           # Push to remote repository
+</code></pre>
+<h3>Node.js Environment</h3>
+<pre><code class="language-bash">node --version     # Check Node.js version (should be v22.17.1)
+npm --version      # Check npm version (should be 10.9.2)
+nvm use 22.17.1    # Switch to correct Node.js version if needed
+</code></pre>
+<h3>File Operations (macOS Darwin)</h3>
+<pre><code class="language-bash">ls -la             # List files with details
+find . -name &quot;*.ts&quot; # Find TypeScript files
+grep -r &quot;pattern&quot; . # Search for pattern in files
+open .             # Open current directory in Finder
+</code></pre>
+<h2>Deployment Commands</h2>
+<h3>Vercel Deployment</h3>
+<p>Note: Vercel CLI is not currently installed. Install with:</p>
+<pre><code class="language-bash">npm i -g vercel    # Install Vercel CLI globally
+vercel --prod      # Deploy to Vercel production
+</code></pre>
+<h2>Development Workflow</h2>
+<h3>Starting Development</h3>
+<ol>
+<li><code>npm run dev</code> - Start development server</li>
+<li>Open <a href="http://localhost:3000">http://localhost:3000</a></li>
+<li>Make changes and see live reload</li>
+</ol>
+<h3>Before Committing</h3>
+<ol>
+<li><code>npm run lint</code> - Check for linting errors</li>
+<li><code>npm run build</code> - Ensure production build works</li>
+<li>Test PDF generation functionality</li>
+</ol>
+<h3>After Task Completion</h3>
+<ol>
+<li><strong>Always run linting</strong>: <code>npm run lint</code></li>
+<li><strong>Verify build</strong>: <code>npm run build</code></li>
+<li><strong>Test core functionality</strong>: Generate a PDF to ensure system works</li>
+<li><strong>Check TypeScript</strong>: Ensure no type errors</li>
+</ol>
+
+            </div>
+          </div>
+        
+          <div class="file-content-wrapper " id="content-documentation-3">
+            <div class="file-header">
+              <h1 class="file-title">project_structure</h1>
+              <div class="file-meta">
+                <span class="file-category">documentation</span>
+                <span class="file-date">8/12/2025</span>
+                <span class="file-path">docs/project_structure.md</span>
+              </div>
+            </div>
+            <div class="file-content">
+              <h1>Project Structure</h1>
+<h2>Root Directory</h2>
+<pre><code>handwriting-js/
+├── app/              # Next.js App Router directory
+├── lib/              # Utility functions and configurations
+├── assets/           # Server-side assets (fonts for PDF generation)
+├── public/           # Static assets served by web server
+├── docs/             # Documentation generation system
+├── backup/           # Backup files
+├── reference/        # Reference materials
+└── Configuration files
+</code></pre>
+<h2>App Directory (<code>app/</code>)</h2>
+<pre><code>app/
+├── components/       # React UI components
+│   ├── FontSelector.tsx      # Font selection component
+│   ├── SizeSelector.tsx      # Size selection component
+│   ├── TextSelector.tsx      # Text content selection
+│   ├── PreviewSection.tsx    # Real-time preview
+│   └── DownloadButton.tsx    # PDF generation trigger
+├── actions/          # Next.js Server Actions
+│   └── pdf-generator.ts      # PDF generation endpoints
+├── fonts/            # Next.js font files (Geist)
+├── layout.tsx        # Root layout component
+├── page.tsx          # Home page component
+└── globals.css       # Global CSS styles
+</code></pre>
+<h2>Library Directory (<code>lib/</code>)</h2>
+<pre><code>lib/
+├── hooks/            # Custom React hooks
+│   └── useFontLoader.ts      # Font loading hook for preview
+├── pdf-utils.ts      # Core PDF generation logic
+├── fonts.ts          # Font metadata and configuration
+├── constants.ts      # Application constants and configurations
+└── font-utils.ts     # Font-related utility functions
+</code></pre>
+<h2>Assets Directory (<code>assets/</code>)</h2>
+<pre><code>assets/
+└── fonts/            # TTF font files for server-side PDF generation
+    ├── RobotoMono-ExtraLightItalic.ttf
+    ├── JetBrainsMono-ExtraLightItalic.ttf
+    └── SourceCodePro-ExtraLightItalic.ttf
+</code></pre>
+<h2>Public Directory (<code>public/</code>)</h2>
+<pre><code>public/
+└── fonts/            # TTF font files for client-side web fonts
+    ├── RobotoMono-ExtraLightItalic.ttf
+    ├── JetBrainsMono-ExtraLightItalic.ttf
+    └── SourceCodePro-ExtraLightItalic.ttf
+</code></pre>
+<h2>Configuration Files</h2>
+<ul>
+<li><code>package.json</code> - Dependencies and scripts</li>
+<li><code>tsconfig.json</code> - TypeScript configuration</li>
+<li><code>tailwind.config.ts</code> - Tailwind CSS configuration</li>
+<li><code>next.config.mjs</code> - Next.js configuration</li>
+<li><code>.eslintrc.json</code> - ESLint rules</li>
+<li><code>CLAUDE.md</code> - AI assistant instructions</li>
+</ul>
+<h2>Key Architectural Decisions</h2>
+<h3>Dual Font Storage</h3>
+<ul>
+<li><strong>assets/fonts/</strong>: Server-side PDF generation (included in Vercel bundle)</li>
+<li><strong>public/fonts/</strong>: Client-side web fonts for preview</li>
+</ul>
+<h3>Layer Separation</h3>
+<ul>
+<li><strong>UI Layer</strong>: React components handle user interaction</li>
+<li><strong>Server Actions</strong>: Handle PDF generation and validation</li>
+<li><strong>PDF Engine</strong>: Core PDF generation with typography system</li>
+<li><strong>Font Management</strong>: Metadata and loading strategies</li>
+</ul>
+<h3>Typography System</h3>
+<ul>
+<li><strong>4-Zone Guidelines</strong>: Ascender, x-height, baseline, descender</li>
+<li><strong>Dynamic Sizing</strong>: OpenType metrics for accurate typography</li>
+<li><strong>Unicode Support</strong>: Subset font embedding for international text</li>
+</ul>
+
+            </div>
+          </div>
+        
+          <div class="file-content-wrapper " id="content-documentation-4">
+            <div class="file-header">
+              <h1 class="file-title">project_overview</h1>
+              <div class="file-meta">
+                <span class="file-category">documentation</span>
+                <span class="file-date">8/12/2025</span>
+                <span class="file-path">docs/project_overview.md</span>
+              </div>
+            </div>
+            <div class="file-content">
+              <h1>Project Overview</h1>
+<h2>Purpose</h2>
+<p>This is a <strong>Next.js 14 application that generates handwriting practice sheets as PDF files</strong>. Users can select different fonts, sizes, and practice texts to create personalized handwriting worksheets with professional typography guidelines.</p>
+<h2>Key Features</h2>
+<ul>
+<li><strong>PDF Generation</strong>: Creates handwriting practice sheets with 4-zone typography system</li>
+<li><strong>Font Selection</strong>: Multiple font options (Roboto Mono, JetBrains Mono, Source Code Pro)</li>
+<li><strong>Size Selection</strong>: Small (14px), Medium (18px), Large (24px) with appropriate line spacing</li>
+<li><strong>Text Options</strong>: Classic sentences and literary excerpts for practice</li>
+<li><strong>Real-time Preview</strong>: Live preview of handwriting guidelines before PDF generation</li>
+<li><strong>Professional Typography</strong>: Implements ascender line, x-height area, baseline, and descender line</li>
+</ul>
+<h2>Target Users</h2>
+<ul>
+<li>Korean speakers learning handwriting (UI in Korean)</li>
+<li>Students and educators needing handwriting practice materials</li>
+<li>Anyone wanting to create professional handwriting worksheets</li>
+</ul>
+<h2>Current Status</h2>
+<ul>
+<li>Fully functional PDF generation system</li>
+<li>Vercel deployment optimized (fonts moved from public/ to assets/ directory)</li>
+<li>Unicode text support with subset font embedding</li>
+<li>Resolved font loading issues in serverless environment</li>
+</ul>
+
+            </div>
+          </div>
+        
+          <div class="file-content-wrapper " id="content-documentation-5">
+            <div class="file-header">
+              <h1 class="file-title">code_style_conventions</h1>
+              <div class="file-meta">
+                <span class="file-category">documentation</span>
+                <span class="file-date">8/12/2025</span>
+                <span class="file-path">docs/code_style_conventions.md</span>
+              </div>
+            </div>
+            <div class="file-content">
+              <h1>Code Style &amp; Conventions</h1>
+<h2>Language Standards</h2>
+<ul>
+<li><strong>TypeScript strict mode</strong> enabled</li>
+<li><strong>Interface-based typing</strong> for component props and data structures</li>
+<li><strong>Named exports</strong> preferred over default exports (except for page components)</li>
+<li><strong>Explicit typing</strong> for function parameters and return values</li>
+</ul>
+<h2>File Organization</h2>
+<ul>
+<li><strong>Component files</strong>: PascalCase naming (e.g., <code>FontSelector.tsx</code>)</li>
+<li><strong>Utility files</strong>: kebab-case naming (e.g., <code>pdf-utils.ts</code>)</li>
+<li><strong>Directory structure</strong>: Logical grouping by feature/type<ul>
+<li><code>app/components/</code> - React components</li>
+<li><code>app/actions/</code> - Server Actions</li>
+<li><code>lib/</code> - Utility functions and configurations</li>
+<li><code>lib/hooks/</code> - Custom React hooks</li>
+</ul>
+</li>
+</ul>
+<h2>Import Conventions</h2>
+<ul>
+<li><strong>Absolute imports</strong> using <code>@/</code> alias</li>
+<li><strong>Grouped imports</strong>: External packages → Internal modules → Relative imports</li>
+<li><strong>Type-only imports</strong> where appropriate</li>
+</ul>
+<h2>Component Patterns</h2>
+<ul>
+<li><strong>&#39;use client&#39;</strong> directive for client components</li>
+<li><strong>Server Actions</strong> for server-side operations</li>
+<li><strong>Props interfaces</strong> with descriptive names ending in <code>Props</code></li>
+<li><strong>Default parameter values</strong> in destructured props</li>
+</ul>
+<h2>Naming Conventions</h2>
+<ul>
+<li><strong>Variables</strong>: camelCase</li>
+<li><strong>Constants</strong>: UPPER_SNAKE_CASE</li>
+<li><strong>Types/Interfaces</strong>: PascalCase</li>
+<li><strong>Functions</strong>: camelCase with descriptive verbs</li>
+<li><strong>Files</strong>: PascalCase for components, kebab-case for utilities</li>
+</ul>
+<h2>Comments</h2>
+<ul>
+<li><strong>Korean comments</strong> for business logic explanations</li>
+<li><strong>English comments</strong> for technical implementation details</li>
+<li><strong>JSDoc comments</strong> for exported functions and interfaces</li>
+</ul>
+<h2>State Management</h2>
+<ul>
+<li><strong>useState</strong> for local component state</li>
+<li><strong>No external state management</strong> - kept simple with prop drilling</li>
+<li><strong>Controlled components</strong> pattern for form inputs</li>
+</ul>
+<h2>Error Handling</h2>
+<ul>
+<li><strong>Explicit error types</strong> in Server Actions</li>
+<li><strong>Graceful fallbacks</strong> in PDF generation</li>
+<li><strong>User-friendly error messages</strong> in Korean</li>
+</ul>
+
+            </div>
+          </div>
+        
+          <div class="file-content-wrapper " id="content-documentation-6">
+            <div class="file-header">
+              <h1 class="file-title">architecture_patterns</h1>
+              <div class="file-meta">
+                <span class="file-category">documentation</span>
+                <span class="file-date">8/12/2025</span>
+                <span class="file-path">docs/architecture_patterns.md</span>
+              </div>
+            </div>
+            <div class="file-content">
+              <h1>Architecture Patterns &amp; Design Guidelines</h1>
+<h2>Core Architecture Patterns</h2>
+<h3>1. Layered Architecture</h3>
+<p>The application follows a clean layered architecture:</p>
+<ul>
+<li><strong>Presentation Layer</strong>: React components in <code>app/components/</code></li>
+<li><strong>Business Logic</strong>: Server Actions in <code>app/actions/</code></li>
+<li><strong>Service Layer</strong>: PDF generation utilities in <code>lib/</code></li>
+<li><strong>Data Layer</strong>: Font metadata and constants</li>
+</ul>
+<h3>2. Server Actions Pattern</h3>
+<ul>
+<li><strong>PDF Generation</strong>: Uses Next.js Server Actions for server-side PDF processing</li>
+<li><strong>Form Handling</strong>: Client components trigger server actions for file downloads</li>
+<li><strong>Error Handling</strong>: Structured error responses with user-friendly messages</li>
+</ul>
+<h3>3. Font Management Strategy</h3>
+<pre><code class="language-typescript">interface FontMetadata {
+  filePath: string;     // Server-side (assets/fonts/)
+  webFilePath: string;  // Client-side (public/fonts/)
+}
+</code></pre>
+<ul>
+<li><strong>Dual Storage</strong>: Fonts stored in both locations for different use cases</li>
+<li><strong>Metadata-Driven</strong>: Configuration-based font selection and loading</li>
+</ul>
+<h3>4. Typography System Design</h3>
+<ul>
+<li><strong>4-Zone Guidelines</strong>: Professional handwriting practice layout</li>
+<li><strong>Metric-Based Sizing</strong>: Uses OpenType font metrics for accurate proportions</li>
+<li><strong>Dynamic Calculation</strong>: Font size adjusted based on x-height and line spacing</li>
+</ul>
+<h2>Design Patterns Used</h2>
+<h3>Component Composition</h3>
+<pre><code class="language-typescript">// Parent component composes child components
+&lt;FontSelector onFontChange={setSelectedFontId} /&gt;
+&lt;SizeSelector onSizeChange={setSelectedSize} /&gt;
+&lt;PreviewSection selectedFontId={selectedFontId} /&gt;
+</code></pre>
+<h3>Hook Pattern</h3>
+<pre><code class="language-typescript">// Custom hook for font loading
+const { getFontState, isFontReady } = useFontLoader();
+</code></pre>
+<h3>Factory Pattern</h3>
+<ul>
+<li><strong>PDF Generation</strong>: Factory methods for creating PDF documents</li>
+<li><strong>Font Loading</strong>: Factory functions for different font loading strategies</li>
+</ul>
+<h3>Strategy Pattern</h3>
+<ul>
+<li><strong>Font Loading</strong>: Multiple strategies for font file resolution</li>
+<li><strong>Text Wrapping</strong>: Different algorithms for text layout</li>
+</ul>
+<h2>Error Handling Patterns</h2>
+<h3>Graceful Degradation</h3>
+<ul>
+<li><strong>Font Loading Failures</strong>: Fallback to default fonts</li>
+<li><strong>PDF Generation Errors</strong>: User-friendly error messages in Korean</li>
+<li><strong>Unicode Encoding</strong>: Fallback to ASCII text when encoding fails</li>
+</ul>
+<h3>Defensive Programming</h3>
+<ul>
+<li><strong>Input Validation</strong>: Validate all parameters before PDF generation</li>
+<li><strong>File Existence</strong>: Check font file accessibility before use</li>
+<li><strong>Type Safety</strong>: Strict TypeScript typing throughout</li>
+</ul>
+<h2>Performance Patterns</h2>
+<h3>Lazy Loading</h3>
+<ul>
+<li><strong>Font Loading</strong>: Fonts loaded on-demand for preview</li>
+<li><strong>Component Rendering</strong>: Preview components update only when needed</li>
+</ul>
+<h3>Caching Strategy</h3>
+<ul>
+<li><strong>Font Metrics</strong>: Cache OpenType parsing results</li>
+<li><strong>Preview State</strong>: Avoid unnecessary re-renders</li>
+</ul>
+<h3>Bundle Optimization</h3>
+<ul>
+<li><strong>Font Subsetting</strong>: Unicode subset embedding for PDF generation</li>
+<li><strong>Tree Shaking</strong>: Ensure unused code is eliminated</li>
+</ul>
+<h2>State Management Pattern</h2>
+<ul>
+<li><strong>Local State</strong>: React useState for component-level state</li>
+<li><strong>Prop Drilling</strong>: Simple prop passing for state sharing</li>
+<li><strong>No Global State</strong>: Deliberately avoided Redux/Zustand for simplicity</li>
+</ul>
+<h2>API Design Patterns</h2>
+<h3>Server Action Signatures</h3>
+<pre><code class="language-typescript">export async function generatePDF(params: PDFParams): Promise&lt;PDFResult&gt;
+export async function validatePDFParams(params: PDFParams): Promise&lt;ValidationResult&gt;
+</code></pre>
+<h3>Error Response Structure</h3>
+<pre><code class="language-typescript">interface PDFGenerationResult {
+  success: boolean;
+  error?: string;
+  pdfBuffer?: Uint8Array;
+}
+</code></pre>
+<h2>Security Patterns</h2>
+<ul>
+<li><strong>Input Sanitization</strong>: Validate all user inputs</li>
+<li><strong>File Path Security</strong>: Prevent directory traversal attacks</li>
+<li><strong>Server-Side Processing</strong>: PDF generation on server to prevent client manipulation</li>
+</ul>
+
+            </div>
+          </div>
+        
+          <div class="file-content-wrapper " id="content-documentation-7">
+            <div class="file-header">
+              <h1 class="file-title">CLAUDE</h1>
+              <div class="file-meta">
+                <span class="file-category">documentation</span>
+                <span class="file-date">8/11/2025</span>
+                <span class="file-path">docs/CLAUDE.md</span>
+              </div>
+            </div>
+            <div class="file-content">
+              <h1>CLAUDE.md - Documentation Directory</h1>
+<p>This file provides specific guidance for Claude Code when working with markdown files in the <code>/docs</code> directory.</p>
+<h2>Markdown Documentation Standards</h2>
+<p>When creating or editing markdown files in this directory, follow these standards:</p>
+<h3>Required Header Format</h3>
+<p>Every markdown file MUST start with the following header format:</p>
+<pre><code class="language-markdown">---
+title: Document Title
+category: [overview|technical|analysis|planning|misc]
+created: 22024-07-01T15:30:45Z
+---
+# Document Title
+
+[Document content follows...]
+</code></pre>
+<h3>Documentation Rules</h3>
+<ol>
+<li><p><strong>Date Format</strong>: Use RFC3339 format (YYYY-MM-DDTHH:MM:SSZ)</p>
+</li>
+<li><p><strong>Category Selection</strong>: Choose exactly one from:</p>
+<ul>
+<li><code>overview</code> - High-level project overviews and introductions</li>
+<li><code>technical</code> - Technical specifications, API docs, code analysis</li>
+<li><code>analysis</code> - Research findings, data analysis, performance studies</li>
+<li><code>planning</code> - Project plans, roadmaps, task breakdowns</li>
+<li><code>misc</code> - Everything else that doesn&#39;t fit other categories</li>
+</ul>
+</li>
+<li><p><strong>Header Placement</strong>: <code>title</code>, <code>category</code> and <code>created</code> info must appear immediately after the main title</p>
+</li>
+<li><p><strong>Formatting</strong>: Use bold text for labels, maintain consistent spacing</p>
+</li>
+</ol>
+<h3>Important Notes</h3>
+<ul>
+<li>ALWAYS apply these rules when creating new markdown files in <code>/docs</code></li>
+<li>When editing existing markdown files, add the header if missing</li>
+<li>Use current timestamp when creating the <code>created</code> field</li>
+</ul>
+<h3>Document Portal Integration</h3>
+<p>Files created with proper headers will be automatically categorized and displayed in the documentation portal (<code>index.html</code>). The categorization system helps organize documents into logical groups for better navigation.</p>
+<h3>Quality Standards</h3>
+<ul>
+<li>Use clear, descriptive titles</li>
+<li>Include comprehensive sections with proper heading hierarchy</li>
+<li>Add code examples where applicable</li>
+<li>Include diagrams (Mermaid) for complex relationships</li>
+<li>Maintain consistent formatting throughout</li>
+<li>Use Korean comments for Korean-language content</li>
+<li>Use English for technical terms and international standards</li>
+</ul>
+
+            </div>
+          </div>
+        
+        </div>
+    </div>
+
+    <script>
+        // 카테고리 토글 기능
+        function toggleCategory(categoryId, titleElement) {
+            const categoryElement = document.getElementById('category-' + categoryId);
+            
+            if (categoryElement) {
+                categoryElement.classList.toggle('collapsed');
+            }
+            if (titleElement) {
+                titleElement.classList.toggle('collapsed');
+            }
+        }
+        
+        // 파일 표시 기능
+        function showFile(fileId, clickedElement) {
+            // 모든 파일 콘텐츠 숨기기
+            document.querySelectorAll('.file-content-wrapper').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // 모든 사이드바 파일에서 active 클래스 제거
+            document.querySelectorAll('.sidebar-file').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // 선택된 파일 표시
+            const contentElement = document.getElementById('content-' + fileId);
+            if (contentElement) {
+                contentElement.classList.add('active');
+            }
+            
+            // 선택된 사이드바 파일에 active 클래스 추가
+            if (clickedElement) {
+                clickedElement.classList.add('active');
+            }
+        }
+        
+        // 초기 설정: 첫 번째 카테고리 열기
+        document.addEventListener('DOMContentLoaded', function() {
+            // 첫 번째 카테고리 열기
+            const firstCategory = document.querySelector('.sidebar-category-title');
+            if (firstCategory) {
+                const categoryId = firstCategory.getAttribute('onclick').match(/'([^']+)'/)[1];
+                const categoryElement = document.getElementById('category-' + categoryId);
+                if (categoryElement) {
+                    // 첫 번째 카테고리는 기본으로 열려있도록 설정
+                    categoryElement.classList.remove('collapsed');
+                    firstCategory.classList.remove('collapsed');
+                }
+            }
+            
+            // 첫 번째 파일 자동 선택
+            const firstFile = document.querySelector('.sidebar-file');
+            if (firstFile) {
+                firstFile.classList.add('active');
+                // 첫 번째 파일 내용도 자동으로 표시
+                const onclick = firstFile.getAttribute('onclick');
+                if (onclick) {
+                    const fileId = onclick.match(/'([^']+)'/)[1];
+                    const contentElement = document.getElementById('content-' + fileId);
+                    if (contentElement) {
+                        contentElement.classList.add('active');
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+    

@@ -1,0 +1,14 @@
+{
+  "theme": "dark",
+  "title": "handwriting notebook",
+  "subtitle": "Project Documentation",
+  "outputFile": "index.html",
+  "docsDir": "docs",
+  "excludeFiles": ["temp.md", "draft.md", "*temp*", "*draft*", "*.bak"],
+  "defaultCategory": "documentation",
+  "watchFiles": [
+    "README.md",
+    "CLAUDE.md",
+    "docs/**/*.md"
+  ]
+}
