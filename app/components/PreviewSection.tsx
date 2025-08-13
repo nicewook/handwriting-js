@@ -8,6 +8,7 @@ interface PreviewSectionProps {
   selectedFontId?: string; // 호환성용으로 유지하지만 무시됨
   selectedSizeId: string; // This prop is now unused but kept for compatibility
   selectedTextId: TextOptionId;
+  pageLimit?: number; // 페이지 제한 정보 추가
   className?: string;
 }
 
@@ -23,6 +24,7 @@ export default function PreviewSection({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   selectedSizeId, // This prop is now unused but kept for compatibility
   selectedTextId,
+  pageLimit = 1, // 기본값 1페이지
   className = '' 
 }: PreviewSectionProps) {
   // selectedFontId 무시하고 항상 Roboto Mono 사용
@@ -84,6 +86,12 @@ export default function PreviewSection({
             <div>텍스트: {selectedTextOption?.name}</div>
             <div>패밀리: {selectedFont.fontFamily}</div>
             <div>스타일: {selectedFont.style} / 굵기: {selectedFont.weight}</div>
+            <div>페이지 제한: {pageLimit}페이지</div>
+            {pageLimit > 1 && (
+              <div className="text-xs text-blue-600 mt-2 p-2 bg-blue-100 rounded">
+                💡 멀티페이지 모드: 텍스트가 여러 페이지에 자동으로 분배됩니다
+              </div>
+            )}
           </div>
         </div>
       )}

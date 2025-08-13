@@ -150,3 +150,31 @@ export const OUTPUT_SETTINGS = {
   DEFAULT_FILENAME: 'handwriting_practice_sheet.pdf',
   CONTENT_TYPE: 'application/pdf'
 } as const;
+
+// 멀티페이지 PDF 설정
+export const MULTI_PAGE_CONFIG = {
+  MIN_PAGES: 1,
+  MAX_PAGES: 50,
+  DEFAULT_PAGE_LIMIT: 10,
+  PAGE_LIMIT_STEP: 1
+} as const;
+
+// 페이지 번호 설정
+export const PAGE_NUMBER_CONFIG = {
+  POSITION: 'bottom-center' as const,
+  MARGIN_FROM_BOTTOM: 15, // points
+  FONT_SIZE: 10,
+  FORMAT: 'detailed' as const, // 'simple' | 'detailed'
+  INCLUDE_FIRST_PAGE: true
+} as const;
+
+// 텍스트 분배 설정
+export const TEXT_DISTRIBUTION_CONFIG = {
+  PRESERVE_SENTENCES: true,
+  PRESERVE_PARAGRAPHS: true,
+  MIN_LINES_PER_PAGE: 5,
+  SENTENCE_BREAK_PENALTY: 100, // 문장 분리 비용
+  PARAGRAPH_BREAK_PENALTY: 200, // 단락 분리 비용
+  MIN_CHARS_PER_LINE: 10,
+  MAX_CHARS_PER_LINE: 120
+} as const;
