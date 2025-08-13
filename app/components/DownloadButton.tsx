@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { getFontById } from '@/lib/fonts';
+import { ROBOTO_MONO_FONT } from '@/lib/fonts';
 import { generatePDF } from '@/app/actions/pdf-generator';
 import { TEXT_OPTIONS, TextOptionId } from '@/lib/constants';
 
 interface DownloadButtonProps {
-  selectedFontId: string;
+  selectedFontId?: string; // 호환성용으로 유지하지만 무시됨
   selectedSize: number;
   selectedTextId: TextOptionId;
   className?: string;
@@ -21,7 +21,8 @@ const getSizeIdFromSize = (size: number): string => {
 };
 
 export default function DownloadButton({ 
-  selectedFontId, 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  selectedFontId: _selectedFontId, // 호환성용으로 유지하지만 무시됨
   selectedSize, 
   selectedTextId,
   className = '',
@@ -31,7 +32,8 @@ export default function DownloadButton({
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
 
-  const selectedFont = getFontById(selectedFontId);
+  // selectedFontId 무시하고 항상 Roboto Mono 사용
+  const selectedFont = ROBOTO_MONO_FONT;
   const selectedTextOption = TEXT_OPTIONS.find(option => option.id === selectedTextId);
 
   // PDF 다운로드 처리
@@ -59,7 +61,7 @@ export default function DownloadButton({
   };
 
   const handleDownload = async () => {
-    if (isGenerating || disabled || !selectedFont) return;
+    if (isGenerating || disabled) return;  // selectedFont 체크 제거 (항상 존재함)
 
     setIsGenerating(true);
     setError(null);
@@ -69,7 +71,7 @@ export default function DownloadButton({
       const sizeId = getSizeIdFromSize(selectedSize);
 
       const formData = new FormData();
-      formData.append('fontId', selectedFontId);
+      formData.append('fontId', 'roboto-mono');  // 고정된 폰트 ID
       formData.append('sizeId', sizeId);
       formData.append('textId', selectedTextId);
       
@@ -107,11 +109,11 @@ export default function DownloadButton({
     <div className={`space-y-3 ${className}`}>
       <button
         onClick={handleDownload}
-        disabled={disabled || isGenerating || !selectedFont}
+        disabled={disabled || isGenerating}
         className={`
           w-full flex items-center justify-center py-3 px-4 border border-transparent 
           rounded-md shadow-sm text-sm font-medium text-white transition-all duration-200
-          ${disabled || isGenerating || !selectedFont
+          ${disabled || isGenerating
             ? 'bg-gray-400 cursor-not-allowed' 
             : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
           }
@@ -138,7 +140,7 @@ export default function DownloadButton({
       <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
         <div className="font-medium text-gray-900 mb-1">생성 설정</div>
         <div className="space-y-1">
-          <div>폰트: {selectedFont?.name || '선택 안됨'}</div>
+          <div>폰트: {selectedFont.name}</div>
           <div>사이즈: {selectedSize}px</div>
           <div>텍스트: {selectedTextOption?.name || '선택 안됨'}</div>
         </div>
@@ -190,16 +192,6 @@ export default function DownloadButton({
         </div>
       )}
 
-      {(!selectedFont) && (
-        <div className="text-sm text-yellow-600 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-          <div className="flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            <span>폰트를 선택해주세요</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

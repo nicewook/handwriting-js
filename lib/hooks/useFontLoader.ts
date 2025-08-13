@@ -1,100 +1,85 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { AVAILABLE_FONTS } from '../fonts';
-import { FontLoadingState, preloadAllFonts, isFontLoaded } from '../font-utils';
+import { ROBOTO_MONO_FONT } from '../fonts';
+import { FontLoadingState, isFontLoaded } from '../font-utils';
 
-// 폰트 로딩 상태 관리 Hook
+// 단일 폰트(Roboto Mono) 로딩 상태 관리 Hook
 export function useFontLoader() {
-  const [loadingStates, setLoadingStates] = useState<Record<string, FontLoadingState>>({});
+  const [fontState, setFontState] = useState<FontLoadingState>('idle');
   const [isInitialized, setIsInitialized] = useState(false);
 
-
-  // 모든 폰트 미리 로딩
-  const initializeFonts = useCallback(async () => {
+  // Roboto Mono 폰트 로딩
+  const initializeFont = useCallback(async () => {
     if (isInitialized) return;
 
-    // 초기 상태를 loading으로 설정
-    const initialStates: Record<string, FontLoadingState> = {};
-    AVAILABLE_FONTS.forEach(font => {
-      initialStates[font.id] = 'loading';
-    });
-    setLoadingStates(initialStates);
+    setFontState('loading');
 
     try {
-      const results = await preloadAllFonts();
+      // 웹폰트 로딩
+      if (typeof document !== 'undefined') {
+        const fontFace = new FontFace(
+          ROBOTO_MONO_FONT.fontFamily,
+          `url('${ROBOTO_MONO_FONT.webFilePath}')`,
+          {
+            weight: ROBOTO_MONO_FONT.weight,
+            style: ROBOTO_MONO_FONT.style,
+            display: 'swap'
+          }
+        );
+
+        await fontFace.load();
+        document.fonts.add(fontFace);
+        
+        // 로딩 확인
+        await document.fonts.load(`1em ${ROBOTO_MONO_FONT.fontFamily}`);
+      }
       
-      // 결과에 따라 상태 업데이트
-      const newStates: Record<string, FontLoadingState> = {};
-      results.forEach(result => {
-        newStates[result.font.id] = result.state;
-      });
-      
-      setLoadingStates(newStates);
+      setFontState('loaded');
       setIsInitialized(true);
     } catch (error) {
-      console.error('Font initialization failed:', error);
-      
-      // 오류 시 모든 폰트를 error 상태로 설정
-      const errorStates: Record<string, FontLoadingState> = {};
-      AVAILABLE_FONTS.forEach(font => {
-        errorStates[font.id] = 'error';
-      });
-      setLoadingStates(errorStates);
+      console.error('Roboto Mono font loading failed:', error);
+      setFontState('error');
       setIsInitialized(true);
     }
   }, [isInitialized]);
 
   // 컴포넌트 마운트 시 폰트 초기화
   useEffect(() => {
-    initializeFonts();
-  }, [initializeFonts]);
+    initializeFont();
+  }, [initializeFont]);
 
-  // 특정 폰트의 로딩 상태 확인
-  const getFontState = useCallback((fontId: string): FontLoadingState => {
-    return loadingStates[fontId] || 'idle';
-  }, [loadingStates]);
+  // 폰트가 로딩되었는지 확인
+  const isFontReady = useCallback((): boolean => {
+    return fontState === 'loaded' && isFontLoaded(ROBOTO_MONO_FONT.fontFamily);
+  }, [fontState]);
 
-  // 특정 폰트가 로딩되었는지 확인
-  const isFontReady = useCallback((fontId: string): boolean => {
-    const font = AVAILABLE_FONTS.find(f => f.id === fontId);
-    if (!font) return false;
-    
-    const state = getFontState(fontId);
-    return state === 'loaded' && isFontLoaded(font.fontFamily);
-  }, [getFontState]);
-
-  // 모든 폰트가 로딩되었는지 확인
-  const areAllFontsReady = useCallback((): boolean => {
-    return AVAILABLE_FONTS.every(font => isFontReady(font.id));
-  }, [isFontReady]);
-
-  // 로딩 중인 폰트 개수
-  const loadingCount = Object.values(loadingStates).filter(state => state === 'loading').length;
+  // 로딩 중인 폰트 개수 (호환성용)
+  const loadingCount = fontState === 'loading' ? 1 : 0;
   
-  // 오류 발생한 폰트 개수
-  const errorCount = Object.values(loadingStates).filter(state => state === 'error').length;
+  // 오류 발생한 폰트 개수 (호환성용)
+  const errorCount = fontState === 'error' ? 1 : 0;
 
   return {
-    loadingStates,
+    fontState,
     isInitialized,
-    getFontState,
     isFontReady,
-    areAllFontsReady,
     loadingCount,
     errorCount,
-    initializeFonts
+    initializeFont
   };
 }
 
-// 특정 폰트 로딩 Hook
-export function useFontState(fontId: string) {
-  const { getFontState, isFontReady } = useFontLoader();
+// Roboto Mono 폰트 상태 Hook (단순화된 버전)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useFontState(_fontId?: string) {
+  const { fontState, isFontReady } = useFontLoader();
   
   const [isChecking, setIsChecking] = useState(false);
   
-  const state = getFontState(fontId);
-  const isReady = isFontReady(fontId);
+  // fontId는 무시하고 항상 Roboto Mono 상태 반환
+  const state = fontState;
+  const isReady = isFontReady();
   
   // 폰트 로딩 상태 재확인
   const recheckFont = useCallback(async () => {
@@ -102,18 +87,17 @@ export function useFontState(fontId: string) {
     
     setIsChecking(true);
     
-    // 브라우저의 font 로딩 상태 재확인
-    const font = AVAILABLE_FONTS.find(f => f.id === fontId);
-    if (font && typeof document !== 'undefined') {
+    // Roboto Mono 폰트 상태 재확인
+    if (typeof document !== 'undefined') {
       try {
-        await document.fonts.load(`1em ${font.fontFamily}`);
+        await document.fonts.load(`1em ${ROBOTO_MONO_FONT.fontFamily}`);
       } catch (error) {
-        console.warn(`Failed to recheck font ${fontId}:`, error);
+        console.warn('Failed to recheck Roboto Mono font:', error);
       }
     }
     
     setIsChecking(false);
-  }, [fontId, isChecking]);
+  }, [isChecking]);
   
   return {
     state,

@@ -1,21 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import FontSelector from './components/FontSelector';
 import SizeSelector from './components/SizeSelector';
 import TextSelector from './components/TextSelector';
 import PreviewSection from './components/PreviewSection';
 import DownloadButton from './components/DownloadButton';
-import { DEFAULT_FONT_ID } from '@/lib/fonts';
 import { DEFAULT_TEXT_OPTION_ID, TextOptionId } from '@/lib/constants';
 
 const DEFAULT_FONT_SIZE = 18;
 
 export default function Home() {
-  // 상태 관리
-  const [selectedFontId, setSelectedFontId] = useState(DEFAULT_FONT_ID);
+  // 상태 관리 (폰트는 Roboto Mono로 고정)
   const [selectedSize, setSelectedSize] = useState(DEFAULT_FONT_SIZE);
   const [selectedTextId, setSelectedTextId] = useState<TextOptionId>(DEFAULT_TEXT_OPTION_ID);
+  
+  // 고정된 폰트 ID
+  const fontId = 'roboto-mono';
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -26,7 +26,7 @@ export default function Home() {
             핸드라이팅 연습 시트 생성기
           </h1>
           <p className="text-lg text-gray-600">
-            다양한 폰트와 사이즈로 나만의 핸드라이팅 연습 시트를 만들어보세요
+            Roboto Mono 폰트로 나만의 핸드라이팅 연습 시트를 만들어보세요
           </p>
         </header>
 
@@ -34,14 +34,6 @@ export default function Home() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Left Panel - Controls */}
           <div className="xl:col-span-1 space-y-6">
-            {/* Font Selection */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <FontSelector
-                selectedFontId={selectedFontId}
-                onFontChange={setSelectedFontId}
-              />
-            </div>
-
             {/* Size Selection */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <SizeSelector
@@ -61,7 +53,7 @@ export default function Home() {
             {/* Download Button */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <DownloadButton
-                selectedFontId={selectedFontId}
+                selectedFontId={fontId}
                 selectedSize={selectedSize}
                 selectedTextId={selectedTextId}
               />
@@ -72,7 +64,7 @@ export default function Home() {
           <div className="xl:col-span-2">
             <div className="bg-white rounded-lg shadow-md p-6">
               <PreviewSection
-                selectedFontId={selectedFontId}
+                selectedFontId={fontId}
                 selectedSizeId={selectedSize.toString()}
                 selectedTextId={selectedTextId}
               />

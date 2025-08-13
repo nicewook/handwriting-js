@@ -9,9 +9,8 @@ import {
 } from '@/lib/pdf-utils';
 import { PDFDocument, rgb, PageSizes } from 'pdf-lib';
 import { 
-  getFontById, 
   getFontSizeById, 
-  AVAILABLE_FONTS, 
+  ROBOTO_MONO_FONT,
   FONT_SIZES,
   FontMetadata,
   FontSize
@@ -27,21 +26,15 @@ export interface PDFGenerationResult {
   contentType?: string;
 }
 
-// PDF 생성 매개변수 검증
+// PDF 생성 매개변수 검증 (Roboto Mono 고정)
 function validatePDFParams(fontId: string, sizeId: string): {
   isValid: boolean;
   font?: FontMetadata;
   fontSize?: FontSize;
   error?: string;
 } {
-  // 폰트 ID 검증
-  const font = getFontById(fontId);
-  if (!font) {
-    return {
-      isValid: false,
-      error: `Invalid font ID: ${fontId}. Available fonts: ${AVAILABLE_FONTS.map(f => f.id).join(', ')}`
-    };
-  }
+  // Roboto Mono 폰트 사용 (fontId 무시)
+  const font = ROBOTO_MONO_FONT;
   
   // 폰트 사이즈 ID 검증
   const fontSize = getFontSizeById(sizeId);
@@ -66,13 +59,13 @@ export async function generatePDF(formData: FormData): Promise<PDFGenerationResu
   try {
     console.log('🚀 PDF 생성 요청 받음...');
     
-    // 1. FormData에서 매개변수 추출
-    const fontId = formData.get('fontId') as string;
+    // 1. FormData에서 매개변수 추출 (fontId는 Roboto Mono로 고정)
+    const fontId = 'roboto-mono';  // 항상 Roboto Mono 사용
     const sizeId = formData.get('sizeId') as string;
     const textId = formData.get('textId') as string;
     const customTexts = formData.get('customTexts') as string;
     
-    console.log(`📝 요청 매개변수: fontId=${fontId}, sizeId=${sizeId}, textId=${textId}`);
+    console.log(`📝 요청 매개변수: fontId=${fontId} (고정), sizeId=${sizeId}, textId=${textId}`);
     
     // 2. 매개변수 검증
     const validation = validatePDFParams(fontId, sizeId);
@@ -254,33 +247,29 @@ export async function generatePDF(formData: FormData): Promise<PDFGenerationResu
   }
 }
 
-// PDF 생성 상태 확인 Server Action
+// PDF 생성 상태 확인 Server Action (Roboto Mono만 확인)
 export async function checkPDFGenerationStatus(): Promise<{
   availableFonts: number;
   validFonts: number;
   systemReady: boolean;
 }> {
   try {
-    console.log('🔍 PDF 생성 시스템 상태 확인 중...');
+    console.log('🔍 PDF 생성 시스템 상태 확인 중... (Roboto Mono)');
     
-    let validFonts = 0;
+    // Roboto Mono 폰트 파일 검증
+    const isValid = await validateFontFile(ROBOTO_MONO_FONT.filePath);
+    const validFonts = isValid ? 1 : 0;
     
-    // 모든 폰트 파일 검증
-    for (const font of AVAILABLE_FONTS) {
-      const isValid = await validateFontFile(font.filePath);
-      if (isValid) {
-        validFonts++;
-      } else {
-        console.warn(`⚠️  폰트 파일 문제: ${font.name} (${font.filePath})`);
-      }
+    if (!isValid) {
+      console.warn(`⚠️  폰트 파일 문제: ${ROBOTO_MONO_FONT.name} (${ROBOTO_MONO_FONT.filePath})`);
     }
     
-    const systemReady = validFonts > 0;
+    const systemReady = isValid;
     
-    console.log(`📊 시스템 상태: ${validFonts}/${AVAILABLE_FONTS.length} 폰트 사용 가능`);
+    console.log(`📊 시스템 상태: Roboto Mono 폰트 ${isValid ? '사용 가능' : '사용 불가'}`);
     
     return {
-      availableFonts: AVAILABLE_FONTS.length,
+      availableFonts: 1,
       validFonts,
       systemReady
     };
@@ -289,15 +278,15 @@ export async function checkPDFGenerationStatus(): Promise<{
     console.error('💥 시스템 상태 확인 실패:', error);
     
     return {
-      availableFonts: AVAILABLE_FONTS.length,
+      availableFonts: 1,
       validFonts: 0,
       systemReady: false
     };
   }
 }
 
-// 개발/디버깅용 폰트 정보 확인 Server Action
-export async function getFontDebugInfo(fontId: string): Promise<{
+// 개발/디버깅용 폰트 정보 확인 Server Action (Roboto Mono 고정)
+export async function getFontDebugInfo(): Promise<{
   success: boolean;
   fontInfo?: {
     id: string;
@@ -315,13 +304,8 @@ export async function getFontDebugInfo(fontId: string): Promise<{
   error?: string;
 }> {
   try {
-    const font = getFontById(fontId);
-    if (!font) {
-      return {
-        success: false,
-        error: `Font not found: ${fontId}`
-      };
-    }
+    // fontId는 무시하고 항상 Roboto Mono 사용
+    const font = ROBOTO_MONO_FONT;
     
     const isValid = await validateFontFile(font.filePath);
     if (!isValid) {

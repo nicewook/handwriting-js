@@ -1,11 +1,11 @@
 'use client';
 
-import { PREVIEW_TEXT, getFontById } from '@/lib/fonts';
+import { PREVIEW_TEXT, ROBOTO_MONO_FONT } from '@/lib/fonts';
 import { useFontState } from '@/lib/hooks/useFontLoader';
 import { TEXT_OPTIONS, TextOptionId } from '@/lib/constants';
 
 interface PreviewSectionProps {
-  selectedFontId: string;
+  selectedFontId?: string; // 호환성용으로 유지하지만 무시됨
   selectedSizeId: string; // This prop is now unused but kept for compatibility
   selectedTextId: TextOptionId;
   className?: string;
@@ -18,14 +18,16 @@ const previewSizes = [
 ];
 
 export default function PreviewSection({ 
-  selectedFontId, 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  selectedFontId: _selectedFontId, // 호환성용으로 유지하지만 무시됨
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   selectedSizeId, // This prop is now unused but kept for compatibility
   selectedTextId,
   className = '' 
 }: PreviewSectionProps) {
-  const { isReady: isFontReady, state: fontState } = useFontState(selectedFontId);
-  const selectedFont = getFontById(selectedFontId);
+  // selectedFontId 무시하고 항상 Roboto Mono 사용
+  const { isReady: isFontReady, state: fontState } = useFontState();
+  const selectedFont = ROBOTO_MONO_FONT;
   const selectedTextOption = TEXT_OPTIONS.find(option => option.id === selectedTextId);
   
   // 선택된 텍스트의 첫 번째 내용을 미리보기로 사용
@@ -58,7 +60,7 @@ export default function PreviewSection({
               {name} ({size}px)
             </h3>
             <div
-              className={`font-preview p-4 bg-gray-50 rounded border-2 border-dashed border-gray-200 ${getFontClassName(selectedFontId)} ${!isFontReady && fontState === 'loading' ? 'loading' : ''}`}
+              className={`font-preview p-4 bg-gray-50 rounded border-2 border-dashed border-gray-200 ${getFontClassName()} ${!isFontReady && fontState === 'loading' ? 'loading' : ''}`}
               style={{ 
                 fontSize: `${size}px`,
                 fontWeight: 200,
@@ -106,13 +108,7 @@ export default function PreviewSection({
   );
 }
 
-// 폰트 ID에 따른 CSS 클래스 반환
-function getFontClassName(fontId: string): string {
-  const classMap: Record<string, string> = {
-    'roboto-mono': 'font-roboto-mono',
-    'jetbrains-mono': 'font-jetbrains-mono',
-    'source-code-pro': 'font-source-code-pro'
-  };
-  
-  return classMap[fontId] || 'font-roboto-mono';
+// Roboto Mono CSS 클래스 반환 (고정)
+function getFontClassName(): string {
+  return 'font-roboto-mono';
 }

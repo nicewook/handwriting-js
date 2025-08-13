@@ -11,42 +11,21 @@ export interface FontMetadata {
   webFilePath: string;     // 웹폰트 CSS용 (public/fonts/)
 }
 
-// 사용 가능한 폰트 목록
-export const AVAILABLE_FONTS: FontMetadata[] = [
-  {
-    id: 'roboto-mono',
-    name: 'Roboto Mono',
-    description: '',
-    fileName: 'RobotoMono-ExtraLightItalic.ttf',
-    fontFamily: 'RobotoMono',
-    weight: '200',
-    style: 'italic',
-    filePath: 'assets/fonts/RobotoMono-ExtraLightItalic.ttf',
-    webFilePath: '/fonts/RobotoMono-ExtraLightItalic.ttf'
-  },
-  {
-    id: 'jetbrains-mono',
-    name: 'JetBrains Mono',
-    description: '',
-    fileName: 'JetBrainsMono-ExtraLightItalic.ttf',
-    fontFamily: 'JetBrainsMono',
-    weight: '200',
-    style: 'italic',
-    filePath: 'assets/fonts/JetBrainsMono-ExtraLightItalic.ttf',
-    webFilePath: '/fonts/JetBrainsMono-ExtraLightItalic.ttf'
-  },
-  {
-    id: 'source-code-pro',
-    name: 'Source Code Pro',
-    description: '',
-    fileName: 'SourceCodePro-ExtraLightItalic.ttf',
-    fontFamily: 'SourceCodePro',
-    weight: '200',
-    style: 'italic',
-    filePath: 'assets/fonts/SourceCodePro-ExtraLightItalic.ttf',
-    webFilePath: '/fonts/SourceCodePro-ExtraLightItalic.ttf'
-  }
-];
+// Roboto Mono 폰트 (고정)
+export const ROBOTO_MONO_FONT: FontMetadata = {
+  id: 'roboto-mono',
+  name: 'Roboto Mono',
+  description: 'Classic monospace font for handwriting practice',
+  fileName: 'RobotoMono-ExtraLightItalic.ttf',
+  fontFamily: 'RobotoMono',
+  weight: '200',
+  style: 'italic',
+  filePath: 'assets/fonts/RobotoMono-ExtraLightItalic.ttf',
+  webFilePath: '/fonts/RobotoMono-ExtraLightItalic.ttf'
+};
+
+// 사용 가능한 폰트 목록 (Roboto Mono만 지원)
+export const AVAILABLE_FONTS: FontMetadata[] = [ROBOTO_MONO_FONT];
 
 // 기본 폰트 설정
 export const DEFAULT_FONT_ID = 'roboto-mono';
@@ -99,7 +78,7 @@ export function getFontSizeById(id: string): FontSize | undefined {
 }
 
 export function getDefaultFont(): FontMetadata {
-  return getFontById(DEFAULT_FONT_ID) || AVAILABLE_FONTS[0];
+  return ROBOTO_MONO_FONT;
 }
 
 export function getDefaultFontSize(): FontSize {
@@ -119,17 +98,17 @@ export function generateFontFaceCSS(font: FontMetadata): string {
   `;
 }
 
-// 모든 폰트의 CSS 생성
+// Roboto Mono 폰트 CSS 생성
 export function generateAllFontFacesCSS(): string {
-  return AVAILABLE_FONTS.map(font => generateFontFaceCSS(font)).join('\n');
+  return generateFontFaceCSS(ROBOTO_MONO_FONT);
 }
 
-// 폰트 스타일 객체 생성
+// 폰트 스타일 객체 생성 (Roboto Mono 고정)
 export function getFontStyle(fontId: string, sizeId: string): React.CSSProperties {
-  const font = getFontById(fontId);
+  const font = ROBOTO_MONO_FONT;  // 항상 Roboto Mono 사용
   const size = getFontSizeById(sizeId);
   
-  if (!font || !size) {
+  if (!size) {
     return {};
   }
   
