@@ -7,7 +7,7 @@ import PreviewSection from './components/PreviewSection';
 import DownloadButton from './components/DownloadButton';
 import { DEFAULT_TEXT_OPTION_ID, TextOptionId } from '@/lib/constants';
 
-const DEFAULT_FONT_SIZE = 18;
+const DEFAULT_FONT_SIZE = 17;
 
 export default function Home() {
   // 상태 관리 (폰트는 Roboto Mono로 고정)

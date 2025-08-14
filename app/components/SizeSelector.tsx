@@ -17,13 +17,13 @@ export default function SizeSelector({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    if (value >= 14 && value <= 24) {
+    if (value >= 14 && value <= 20) {
       onSizeChange(value);
     } else if (e.target.value === '') {
       // Allow clearing the input, maybe default to a value or handle it
     } else {
       // Clamp the value if it goes out of bounds
-      const clampedValue = Math.max(14, Math.min(24, value));
+      const clampedValue = Math.max(14, Math.min(20, value));
       onSizeChange(clampedValue);
     }
   };
@@ -36,7 +36,7 @@ export default function SizeSelector({
           <input
             type="number"
             min="14"
-            max="24"
+            max="20"
             value={selectedSize}
             onChange={handleInputChange}
             className="w-14 text-center font-semibold text-lg text-blue-600 bg-transparent focus:outline-none"
@@ -49,7 +49,7 @@ export default function SizeSelector({
         <input
           type="range"
           min="14"
-          max="24"
+          max="20"
           value={selectedSize}
           onChange={handleSliderChange}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
