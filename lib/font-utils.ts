@@ -35,9 +35,27 @@ export function validateFontFile(font: FontMetadata): boolean {
   }
 }
 
-// 웹 폰트 로딩 함수
+// 웹 폰트 로딩 함수 (클라이언트 사이드 체크 추가)
 export async function loadWebFont(font: FontMetadata): Promise<FontLoadResult> {
   try {
+    // 브라우저 환경 체크
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return {
+        font,
+        state: 'error',
+        error: 'Browser APIs not available (SSR environment)'
+      };
+    }
+
+    // FontFace API 지원 체크
+    if (typeof FontFace === 'undefined') {
+      return {
+        font,
+        state: 'error',
+        error: 'FontFace API not supported'
+      };
+    }
+
     // 폰트 유효성 검사
     if (!validateFontFile(font)) {
       throw new Error(`Invalid font configuration: ${font.name}`);
@@ -58,9 +76,7 @@ export async function loadWebFont(font: FontMetadata): Promise<FontLoadResult> {
     const loadedFont = await fontFace.load();
     
     // 문서에 폰트 추가
-    if (typeof document !== 'undefined') {
-      document.fonts.add(loadedFont);
-    }
+    document.fonts.add(loadedFont);
 
     return {
       font,
@@ -106,21 +122,34 @@ export async function preloadAllFonts(): Promise<FontLoadResult[]> {
   }
 }
 
-// 폰트가 로딩되었는지 확인
+// 폰트가 로딩되었는지 확인 (클라이언트 사이드 체크 강화)
 export function isFontLoaded(fontFamily: string): boolean {
-  if (typeof document === 'undefined') {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
     return false;
   }
   
-  return document.fonts.check(`1em ${fontFamily}`);
+  if (!document.fonts || typeof document.fonts.check !== 'function') {
+    return false;
+  }
+  
+  try {
+    return document.fonts.check(`1em ${fontFamily}`);
+  } catch (error) {
+    console.warn(`Error checking font ${fontFamily}:`, error);
+    return false;
+  }
 }
 
-// 폰트 로딩 대기
+// 폰트 로딩 대기 (클라이언트 사이드 체크 강화)
 export async function waitForFontLoad(
   fontFamily: string, 
   timeout: number = 5000
 ): Promise<boolean> {
-  if (typeof document === 'undefined') {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return false;
+  }
+
+  if (!document.fonts || typeof document.fonts.load !== 'function') {
     return false;
   }
 

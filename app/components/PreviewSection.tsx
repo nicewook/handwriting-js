@@ -2,6 +2,7 @@
 
 import { PREVIEW_TEXT, ROBOTO_MONO_FONT } from '@/lib/fonts';
 import { useFontState } from '@/lib/hooks/useFontLoader';
+import { useHydrationSafe } from '@/lib/hooks/useHydrationSafe';
 import { TEXT_OPTIONS, TextOptionId } from '@/lib/constants';
 
 interface PreviewSectionProps {
@@ -27,28 +28,34 @@ export default function PreviewSection({
   pageLimit = 1, // 기본값 1페이지
   className = '' 
 }: PreviewSectionProps) {
-  // selectedFontId 무시하고 항상 Roboto Mono 사용
+  // 하이드레이션 안전한 폰트 상태 관리
   const { isReady: isFontReady, state: fontState } = useFontState();
+  const { isHydrated } = useHydrationSafe(false, true);
+  
   const selectedFont = ROBOTO_MONO_FONT;
   const selectedTextOption = TEXT_OPTIONS.find(option => option.id === selectedTextId);
   
   // 선택된 텍스트의 첫 번째 내용을 미리보기로 사용
   const previewText = selectedTextOption?.texts[0] || PREVIEW_TEXT;
+  
+  // 하이드레이션 전에는 정적 상태, 후에는 동적 상태
+  const displayFontState = isHydrated ? fontState : 'idle';
+  const displayIsFontReady = isHydrated ? isFontReady : false;
 
   return (
     <div className={`space-y-6 ${className}`}>
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-gray-800">미리보기</h2>
         
-        {/* 폰트 상태 표시 */}
+        {/* 폰트 상태 표시 (하이드레이션 후에만 동적 상태 표시) */}
         <div className="text-sm text-gray-500">
           {selectedFont && (
             <span className="font-medium">{selectedFont.name}</span>
           )}
-          {fontState === 'loading' && (
+          {displayFontState === 'loading' && (
             <span className="text-blue-600 ml-2">로딩 중...</span>
           )}
-          {fontState === 'error' && (
+          {displayFontState === 'error' && (
             <span className="text-red-600 ml-2">로딩 실패</span>
           )}
         </div>
@@ -62,7 +69,7 @@ export default function PreviewSection({
               {name} ({size}px)
             </h3>
             <div
-              className={`font-preview p-4 bg-gray-50 rounded border-2 border-dashed border-gray-200 ${getFontClassName()} ${!isFontReady && fontState === 'loading' ? 'loading' : ''}`}
+              className={`font-preview p-4 bg-gray-50 rounded border-2 border-dashed border-gray-200 ${getFontClassName()} ${!displayIsFontReady && displayFontState === 'loading' ? 'loading' : ''}`}
               style={{ 
                 fontSize: `${size}px`,
                 fontWeight: 200,
@@ -96,8 +103,8 @@ export default function PreviewSection({
         </div>
       )}
 
-      {/* 오류 상태 표시 */}
-      {fontState === 'error' && (
+      {/* 오류 상태 표시 (하이드레이션 후에만) */}
+      {displayFontState === 'error' && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center">
             <svg className="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">

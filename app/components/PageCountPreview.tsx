@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { PageEstimate } from '@/lib/types/multi-page-pdf';
 import { TextOptionId, TEXT_OPTIONS } from '@/lib/constants';
-import { ROBOTO_MONO_FONT } from '@/lib/fonts';
+import { useHydrationSafe, useClientEffect } from '@/lib/hooks/useHydrationSafe';
 
 interface PageCountPreviewProps {
   selectedTextId: TextOptionId;
@@ -20,6 +20,8 @@ export default function PageCountPreview({
   onEstimateUpdate,
   className = ''
 }: PageCountPreviewProps) {
+  // 하이드레이션 안전한 상태 관리
+  const { isHydrated } = useHydrationSafe(false, true);
   const [estimate, setEstimate] = useState<PageEstimate | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,10 +76,35 @@ export default function PageCountPreview({
     }
   };
 
-  // 의존성이 변경될 때마다 추정 재실행
-  useEffect(() => {
+  // 하이드레이션 완료 후에만 추정 실행
+  useClientEffect(() => {
     estimatePages();
   }, [selectedTextId, selectedSize, pageLimit]);
+
+  // 하이드레이션 전에는 플레이스홀더 표시
+  if (!isHydrated) {
+    return (
+      <div className={`space-y-3 ${className}`}>
+        <h3 className="text-lg font-medium text-gray-900">페이지 수 예상</h3>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center">
+                <span className="text-2xl font-bold text-gray-400">-</span>
+                <span className="ml-2 text-lg text-gray-400">페이지</span>
+              </div>
+              <p className="text-sm mt-1 text-gray-500">계산 준비 중...</p>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-medium text-gray-500">
+                제한: {pageLimit}페이지
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // 로딩 상태
   if (isLoading) {

@@ -3,21 +3,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ROBOTO_MONO_FONT } from '../fonts';
 import { FontLoadingState, isFontLoaded } from '../font-utils';
+import { useHydrationSafe, useClientEffect, useBrowserAPI } from './useHydrationSafe';
 
 // 단일 폰트(Roboto Mono) 로딩 상태 관리 Hook
 export function useFontLoader() {
-  const [fontState, setFontState] = useState<FontLoadingState>('idle');
+  // 하이드레이션 안전한 초기 상태 사용
+  const { value: fontState, isHydrated } = useHydrationSafe<FontLoadingState>('idle', 'idle');
+  const [currentFontState, setCurrentFontState] = useState<FontLoadingState>('idle');
   const [isInitialized, setIsInitialized] = useState(false);
+  const isBrowserReady = useBrowserAPI();
 
-  // Roboto Mono 폰트 로딩
+  // Roboto Mono 폰트 로딩 (하이드레이션 후에만 실행)
   const initializeFont = useCallback(async () => {
-    if (isInitialized) return;
+    if (isInitialized || !isBrowserReady) return;
 
-    setFontState('loading');
+    setCurrentFontState('loading');
 
     try {
-      // 웹폰트 로딩
-      if (typeof document !== 'undefined') {
+      // 브라우저 API 사용 가능 확인
+      if (typeof document !== 'undefined' && typeof FontFace !== 'undefined') {
         const fontFace = new FontFace(
           ROBOTO_MONO_FONT.fontFamily,
           `url('${ROBOTO_MONO_FONT.webFilePath}')`,
@@ -35,34 +39,38 @@ export function useFontLoader() {
         await document.fonts.load(`1em ${ROBOTO_MONO_FONT.fontFamily}`);
       }
       
-      setFontState('loaded');
+      setCurrentFontState('loaded');
       setIsInitialized(true);
     } catch (error) {
       console.error('Roboto Mono font loading failed:', error);
-      setFontState('error');
+      setCurrentFontState('error');
       setIsInitialized(true);
     }
-  }, [isInitialized]);
+  }, [isInitialized, isBrowserReady]);
 
-  // 컴포넌트 마운트 시 폰트 초기화
-  useEffect(() => {
+  // 하이드레이션 완료 후 폰트 초기화
+  useClientEffect(() => {
     initializeFont();
   }, [initializeFont]);
 
-  // 폰트가 로딩되었는지 확인
+  // 폰트가 로딩되었는지 확인 (하이드레이션 후에만)
   const isFontReady = useCallback((): boolean => {
-    return fontState === 'loaded' && isFontLoaded(ROBOTO_MONO_FONT.fontFamily);
-  }, [fontState]);
+    if (!isHydrated || !isBrowserReady) return false;
+    return currentFontState === 'loaded' && isFontLoaded(ROBOTO_MONO_FONT.fontFamily);
+  }, [currentFontState, isHydrated, isBrowserReady]);
+
+  // 현재 폰트 상태 (하이드레이션 전에는 'idle' 유지)
+  const effectiveFontState = isHydrated ? currentFontState : 'idle';
 
   // 로딩 중인 폰트 개수 (호환성용)
-  const loadingCount = fontState === 'loading' ? 1 : 0;
+  const loadingCount = effectiveFontState === 'loading' ? 1 : 0;
   
   // 오류 발생한 폰트 개수 (호환성용)
-  const errorCount = fontState === 'error' ? 1 : 0;
+  const errorCount = effectiveFontState === 'error' ? 1 : 0;
 
   return {
-    fontState,
-    isInitialized,
+    fontState: effectiveFontState,
+    isInitialized: isHydrated ? isInitialized : false,
     isFontReady,
     loadingCount,
     errorCount,
@@ -70,10 +78,11 @@ export function useFontLoader() {
   };
 }
 
-// Roboto Mono 폰트 상태 Hook (단순화된 버전)
+// Roboto Mono 폰트 상태 Hook (하이드레이션 안전 버전)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function useFontState(_fontId?: string) {
   const { fontState, isFontReady } = useFontLoader();
+  const isBrowserReady = useBrowserAPI();
   
   const [isChecking, setIsChecking] = useState(false);
   
@@ -81,9 +90,9 @@ export function useFontState(_fontId?: string) {
   const state = fontState;
   const isReady = isFontReady();
   
-  // 폰트 로딩 상태 재확인
+  // 폰트 로딩 상태 재확인 (하이드레이션 후에만)
   const recheckFont = useCallback(async () => {
-    if (isChecking) return;
+    if (isChecking || !isBrowserReady) return;
     
     setIsChecking(true);
     
@@ -97,7 +106,7 @@ export function useFontState(_fontId?: string) {
     }
     
     setIsChecking(false);
-  }, [isChecking]);
+  }, [isChecking, isBrowserReady]);
   
   return {
     state,
