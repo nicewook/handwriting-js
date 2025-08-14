@@ -8,6 +8,7 @@ import DownloadButton from './components/DownloadButton';
 import PageLimitSelector from './components/PageLimitSelector';
 import PageCountPreview from './components/PageCountPreview';
 import { DEFAULT_TEXT_OPTION_ID, TextOptionId, MULTI_PAGE_CONFIG } from '@/lib/constants';
+import { useHydrationSafe } from '@/lib/hooks/useHydrationSafe';
 
 const DEFAULT_FONT_SIZE = 18;
 
@@ -17,6 +18,9 @@ export default function Home() {
   const [selectedTextId, setSelectedTextId] = useState<TextOptionId>(DEFAULT_TEXT_OPTION_ID);
   const [pageLimit, setPageLimit] = useState(MULTI_PAGE_CONFIG.DEFAULT_PAGE_LIMIT);
   
+  // 하이드레이션 안전한 pageLimit 값 사용
+  const { value: safePageLimit } = useHydrationSafe(MULTI_PAGE_CONFIG.DEFAULT_PAGE_LIMIT, pageLimit);
+  
   // 고정된 폰트 ID
   const fontId = 'roboto-mono';
 
@@ -24,7 +28,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <header className="text-center mb-12">
+        <header className="text-center mb-12" suppressHydrationWarning>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             핸드라이팅 연습 시트 생성기
           </h1>
@@ -32,7 +36,7 @@ export default function Home() {
             Roboto Mono 폰트로 나만의 핸드라이팅 연습 시트를 만들어보세요
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            {pageLimit > 1 ? `멀티페이지 모드 (최대 ${pageLimit}페이지)` : '단일페이지 모드'}
+            {safePageLimit > 1 ? `멀티페이지 모드 (최대 ${safePageLimit}페이지)` : '단일페이지 모드'}
           </p>
         </header>
 

@@ -97,7 +97,7 @@ export default function PageCountPreview({
             </div>
             <div className="text-right">
               <div className="text-sm font-medium text-gray-500">
-                제한: {pageLimit}페이지
+                계산 중...
               </div>
             </div>
           </div>
